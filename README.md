@@ -28,10 +28,7 @@ Submitted to the *Brazilian Journal of Probability and Statistics*.
 
 The Beta Autoregressive Moving Average (BARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**.  This often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable, implausible estimates. 
 
-This project introduces and implements two strategies to overcome these challenges:
-
-1.  A **ridge penalization scheme** that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence. 
-2.  A complementary **bootstrap-based estimation strategy** that provides reliable estimates when penalization alone is not sufficient. 
+This project introduces and implements a ridge penalization scheme that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence.
 
 The effectiveness of these methods is demonstrated through a detailed case study on modeling the relative humidity in Brasília, Brazil. 
 
@@ -43,7 +40,6 @@ This package provides a robust toolkit for stable BARMA model estimation.
 
 * **Ridge-Penalized BARMA Model:** The core `barma()` function is enhanced with a `penalty` argument to apply the ridge penalization scheme.
 * **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
-* **Bootstrap Estimation:** A bootstrap-based scheme using non-overlapping and generalized block methods provides a powerful alternative for estimation in challenging scenarios. 
 * **Vignette as a Case Study:** A detailed vignette (`relative_humidity_brasilia.Rmd`) serves as a practical guide and portfolio piece, demonstrating how to diagnose and solve numerical instability in a real-world application.
 
 ---
@@ -117,6 +113,13 @@ You can open the vignette directly from your R console to view the full analysis
 # Open the main application case study
 vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
 ```
+
+---
+
+## 🔬 Future Work
+While this package provides a complete solution for ridge-penalized estimation, future versions could be extended to include:
+
+* The complementary bootstrap-based estimation strategy discussed in the paper.
 
 ---
 
