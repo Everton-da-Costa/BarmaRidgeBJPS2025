@@ -1,130 +1,146 @@
-# BARMAJournalHydrology2024
+# BarmaRidgeBJPS2025
 
-This repository contains the R code and associated data for the scientific article:
+[![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**"Test inferences and link function selection in dynamic beta modeling of seasonal hydro-environmental time series with temporary abnormal regimes"**  
-by Costa, E., Cribari-Neto, F., and Scher, V. T.  
-Published in the *Journal of Hydrology*, Volume 638, 2024, 131489.
+This repository contains the R package and associated data for the scientific article:
 
-[**View Article on ScienceDirect**](https://doi.org/10.1016/j.jhydrol.2024.131489)
+**"Numerical stability enhancements in beta autoregressive moving average model estimation"** by Cribari-Neto, F., Costa, E., and Fonseca, R. V.
+Submitted to the *Brazilian Journal of Probability and Statistics*. 
 
 ---
 
 ## 📚 Table of Contents
 
-- [📄 Project Overview](#-project-overview)
+- [🎯 Project Motivation](#-project-motivation)
+- [✨ Key Features](#-key-features)
 - [📂 Repository Structure](#-repository-structure)
-- [📦 Repository Contents](#-repository-contents)
-- [🛠️ Setup and Usage](#️-setup-and-usage)
+- [🛠️ Installation](#️-installation)
+- [🚀 Getting Started & Example (Vignette)](#-getting-started--example-vignette)
 - [🎓 Citation](#-citation)
-- [📬 Contact](#contact)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [📬 Contact](#-contact)
 
 ---
 
-## 📄 Project Overview
+## 🎯 Project Motivation
 
-This repository provides R scripts and data to replicate the time series analysis on the useful volume of three water reservoirs: Itaparica, Sobradinho, and Três Marias (ONS, 2024). The code implements dynamic beta modeling for seasonal hydro-environmental time series, addressing test inferences and link function selection in the presence of temporary abnormal regimes.
+The Beta Autoregressive Moving Average (BARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**.  This often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable, implausible estimates. 
+
+This project introduces and implements two strategies to overcome these challenges:
+
+1.  A **ridge penalization scheme** that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence. 
+2.  A complementary **bootstrap-based estimation strategy** that provides reliable estimates when penalization alone is not sufficient. 
+
+The effectiveness of these methods is demonstrated through a detailed case study on modeling the relative humidity in Brasília, Brazil. 
+
+---
+
+## ✨ Key Features
+
+This package provides a robust toolkit for stable BARMA model estimation.
+
+* **Ridge-Penalized BARMA Model:** The core `barma()` function is enhanced with a `penalty` argument to apply the ridge penalization scheme.
+* **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
+* **Bootstrap Estimation:** A bootstrap-based scheme using non-overlapping and generalized block methods provides a powerful alternative for estimation in challenging scenarios. 
+* **Vignette as a Case Study:** A detailed vignette (`relative_humidity_brasilia.Rmd`) serves as a practical guide and portfolio piece, demonstrating how to diagnose and solve numerical instability in a real-world application.
 
 ---
 
 ## 📂 Repository Structure
 
+The repository is structured as a standard R package for clarity and reproducibility.
+
 ```plaintext
 .
-├── R/                  # Core R functions and scripts
-│   ├── barma.R
-│   ├── barma3ClassicalTests.R
-│   ├── barma3ClassicalTestsAuxFun.R
-│   ├── makeLinkStructure.R
-│   └── simuBarma.R
-│
-├── data/               # Raw data files
-│   ├── itaparica.csv
-│   ├── sobradinho.csv
-│   └── tres_marias.csv
-│
-├── analysis/           # Application scripts and Rmd sources
-│   ├── application_itaparica.R
-│   ├── application_sobradinho.R
-│   ├── application_tres_marias.R
-│   ├── classical_tests_example.Rmd
-│   └── render_classical_tests_example.R
-│
-├── output/             # Generated outputs (PDFs)
-│   └── classical_tests_example.pdf
-│
-├── .gitignore                      # Files/folders to ignore in Git
-├── BARMAJournalHydrology2024.Rproj # RStudio project file
-└── README.md                       # Project overview
+├── R/                  # Source code for all R functions.
+├── data/               # Processed data included in the package (.rda).
+├── data-raw/           # Raw data and scripts used to process it.
+├── vignettes/          # Detailed tutorial and case study (.Rmd).
+├── man/                # R package documentation files for functions.
+├── DESCRIPTION         # Package metadata and dependencies.
+├── NAMESPACE           # Manages the package's namespace.
+├── LICENSE             # MIT License file.
+└── README.md           # This file.
 ```
 
 ---
 
-## 📦 Repository Contents
+## 🛠️ Installation
+This research compendium can be installed as an R package directly from GitHub. This is the recommended method as it handles all dependencies automatically.
 
-This section details the contents of the repository, organized by directory and file purpose.
-
-*   `R/`
-    *   `barma.R`: Contains core functions for the BARMA model, used by the main application scripts.
-    *   `barma3ClassicalTests.R`: Main script implementing the three classical tests for misspecification.
-    *   `barma3ClassicalTestsAuxFun.R`: Auxiliary/helper functions supporting the classical tests.
-    *   `makeLinkStructure.R`: Functions for creating the link function structure for the models.
-    *   `simuBarma.R`: Functions for simulating BARMA time series.
-*   `data/`
-    *   `itaparica.csv`: Useful volume data for the Itaparica reservoir.
-    *   `sobradinho.csv`: Useful volume data for the Sobradinho reservoir.
-    *   `tres_marias.csv`: Useful volume data for the Três Marias reservoir.
-*   `analysis/`
-    *   `application_itaparica.R`: Analysis script for replicating results for the Itaparica reservoir.
-    *   `application_sobradinho.R`: Analysis script for replicating results for the Sobradinho reservoir.
-    *   `application_tres_marias.R`: Analysis script for replicating results for the Três Marias reservoir.
-    *   `classical_tests_example.Rmd`: R Markdown source file for the numerical example of the three classical tests.
-    *   `render_classical_tests_example.R`: R script to render the `classical_tests_example.Rmd` creating the  `classical_tests_example.pdf` in the `output` directory.
-*   `output/`
-    *   `classical_tests_example.pdf`: The rendered PDF report generated from `classical_tests_example.Rmd`.
-*   `.gitignore`: Specifies intentionally untracked files to ignore.
-*   `BARMAJournalHydrology2024.Rproj`: RStudio project file for easy project management.
-*   `README.md`: This overview document for the repository.
-
----
-
-## 🛠️ Setup and Usage
-
-To run the R scripts in this repository, you will need **R** installed.
-
-### 1. Dependencies
-
-This code requires several R packages. You can install all dependencies by running the following command in your R console:
+First, ensure you have the `remotes` package. If not, install it from CRAN:
 
 ```R
-install.packages(c("tseries", "forecast", "zoo", "lbfgs", "moments", "rmarkdown"))
+if (!require("remotes")) {
+  install.packages("remotes")
+}
 ```
 
-### 2. Last Tested Environment
+Then, install the package from GitHub:
+
+```R
+remotes::install_github("everton-da-costa/BarmaRidgeBJPS2025", 
+                        dependencies = TRUE,
+                        build_vignettes = TRUE)
+```
+
+**Last Tested Environment**
 The scripts were last successfully tested on:
-*   **R version:** 4.4.2 ("Pile of Leaves")
-*   **Platform:** x86_64-pc-linux-gnu (64-bit)
+
+* **R version:** 4.4.2
+* **Platform:** x86_64-pc-linux-gnu (64-bit)
+
+---
+
+## 🚀 Getting Started & Example (Vignette)
+
+The best way to understand and replicate the analysis is through the package vignette, which provides a detailed, narrated code example.
+
+**1. List Available Vignettes**
+After installation, you can see all available vignettes with the following command:
+
+```R
+# Lists all tutorials for this package
+browseVignettes("BarmaRidgeBJPS2025")
+```
+
+**2. Open the Vignette**
+The main vignette showcases the practical application of the package's methods.
+
+* `relative_humidity_brasilia`: (Portfolio Case Study) An end-to-end data science project demonstrating how to diagnose and solve numerical instability when modeling relative humidity. It covers the comparison between standard MLE, penalized MLE (PMLE), and bootstrap-based estimates.
+
+You can open the vignette directly from your R console to view the full analysis and code.
+
+```R
+# Open the main application case study
+vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
+```
+
+---
 
 ## 🎓 Citation
 
 If you use this code or data in your research, please cite the original article:
 
 ```bibtex
-@article{Costa+Cribari+Scher_2024,
-  title     = {Test inferences and link function selection in dynamic beta modeling of seasonal hydro-environmental time series with temporary abnormal regimes},
-  author    = {Costa, E. and Cribari-Neto, F. and Scher, V. T.},
-  journal   = {Journal of Hydrology},
-  volume    = {638},
-  pages     = {131489}, 
-  year      = {2024},
-  doi       = {10.1016/j.jhydrol.2024.131489}
+@article{CribariNeto+Costa+Fonseca_2025,
+  title     = {Numerical stability enhancements in beta autoregressive moving average model estimation},
+  author    = {Cribari-Neto, F. and Costa, E. and Fonseca, R. V.},
+  journal   = {Brazilian Journal of Probability and Statistics},
+  year      = {2025}
 }
-
 ```
+
+## 🤝 Contributing
+Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+
+## 📄 License
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## 📬 Contact
 For questions, suggestions, or issues related to the code, please contact:
 
-Everton da Costa
-
-📧 everto.cost@gmail.com.br
+Everton da Costa  
+📧 everto.cost@gmail.com 
