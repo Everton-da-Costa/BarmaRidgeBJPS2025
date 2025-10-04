@@ -69,4 +69,4 @@ Original code by Fabio M. Bayer (bayer@ufsm.br).
 Substantially modified and improved by Everton da Costa
 (everto_cost@gmail.com).
 }
-\keyword{internal}
+\keyword{external}
