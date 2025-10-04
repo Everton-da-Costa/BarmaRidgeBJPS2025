@@ -3,7 +3,7 @@
 [![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This repository contains R code and associated data for the article:
+This repository contains the R package and associated data for the scientific article:
 
 **"Numerical stability enhancements in beta autoregressive moving average model estimation"** by Cribari-Neto, F., Costa, E., and Fonseca, R. V.
 Submitted to the *Brazilian Journal of Probability and Statistics*. 
@@ -26,7 +26,7 @@ Submitted to the *Brazilian Journal of Probability and Statistics*.
 
 ## 🎯 Project Motivation
 
-The Beta Autoregressive Moving Average ($\beta$ARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood may suffer from **numerical instability**, which often occurs when the conditional log-likelihood function has flat regions, leading to convergence failures or unreliable estimates.
+The Beta Autoregressive Moving Average ($\beta$ARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**, which often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable estimates.
 
 This R package implements a ridge penalization scheme that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence.
 
@@ -36,10 +36,10 @@ The effectiveness of these methods is demonstrated through a detailed case study
 
 ## ✨ Key Features
 
-This package provides a toolkit for stable BARMA model estimation.
+This package provides a robust toolkit for stable BARMA model estimation.
 
 * **Ridge-Penalized BARMA Model:** The core `barma()` function is enhanced with a `penalty` argument to apply the ridge penalization scheme.
-* **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the conditional log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
+* **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
 * **Vignette as a Case Study:** A detailed vignette (`relative_humidity_brasilia.Rmd`) serves as a practical guide and portfolio piece, demonstrating how to diagnose and solve numerical instability in a real-world application.
 
 ---
@@ -77,7 +77,7 @@ if (!require("remotes")) {
 Then, install the package from GitHub:
 
 ```R
-remotes::install_github("Everton-da-Costa/BarmaRidgeBJPS2025", 
+remotes::install_github("everton-da-costa/BarmaRidgeBJPS2025", 
                         dependencies = TRUE,
                         build_vignettes = TRUE)
 ```
