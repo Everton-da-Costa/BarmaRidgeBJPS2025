@@ -77,7 +77,7 @@ if (!require("remotes")) {
 Then, install the package from GitHub:
 
 ```R
-remotes::install_github("everton-da-costa/BarmaRidgeBJPS2025", 
+remotes::install_github("Everton-da-Costa/BarmaRidgeBJPS2025", 
                         dependencies = TRUE,
                         build_vignettes = TRUE)
 ```
