@@ -1,7 +1,12 @@
+---
+title: "README: BarmaRidgeBJPS2025 R Package"
+---
+
 # BarmaRidgeBJPS2025
 
 [![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![R-CMD-check](https://github.com/everton-da-costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/everton-da-costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml)
 
 This repository contains the R package and associated data for the scientific article:
 
@@ -26,9 +31,9 @@ Submitted to the *Brazilian Journal of Probability and Statistics*.
 
 ## 🎯 Project Motivation
 
-The Beta Autoregressive Moving Average (BARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**.  This often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable, implausible estimates. 
+The Beta Autoregressive Moving Average ($\beta$ARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**, which often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable estimates.
 
-This project introduces and implements a ridge penalization scheme that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence.
+This R package implements a ridge penalization scheme that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence.
 
 The effectiveness of these methods is demonstrated through a detailed case study on modeling the relative humidity in Brasília, Brazil. 
 
@@ -105,21 +110,21 @@ browseVignettes("BarmaRidgeBJPS2025")
 **2. Open the Vignette**
 The main vignette showcases the practical application of the package's methods.
 
-* `relative_humidity_brasilia`: (Portfolio Case Study) An end-to-end data science project demonstrating how to diagnose and solve numerical instability when modeling relative humidity. It covers the comparison between standard MLE, penalized MLE (PMLE), and bootstrap-based estimates.
+* `simulated_ts_example`: (Numerical Demonstration) Reproduces the simulation study from the paper, showing how standard CMLE fails and PCMLE succeeds in a controlled environment where the true parameters are known.
+
+* `relative_humidity_brasilia`: (Empirical Application) An end-to-end project demonstrating how to solve numerical instability when modeling the relative humidity in Brasília. It covers the comparison between CMLE, PCMLE, and bootstrap-based estimates.
 
 You can open the vignette directly from your R console to view the full analysis and code.
 
 ```R
 # Open the main application case study
-vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
+vignette("simulated_ts_example", package = "BarmaRidgeBJPS2025")
 ```
 
----
-
-## 🔬 Future Work
-While this package provides a complete solution for ridge-penalized estimation, future versions could be extended to include:
-
-* The complementary bootstrap-based estimation strategy discussed in the paper.
+```R
+# Open the main application case study
+vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
+```
 
 ---
 
