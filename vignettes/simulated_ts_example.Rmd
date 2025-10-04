@@ -1,0 +1,778 @@
+---
+title: "A Simulation Example: Addressing Numerical Instability in 
+$\\beta\\text{ARMA}$ Models"
+subtitle: "Reproducing the CMLE and PCMLE from Cribari-Neto, Costa, & Fonseca (2025)"
+author: "Everton da Costa"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    fig_caption: true
+# bibliography: ../inst/REFERENCES.bib
+vignette: >
+  %\VignetteIndexEntry{Simulation: CMLE vs. PCMLE Instability}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 3.5,
+  fig.align = "center",
+  warning = FALSE,
+  message = FALSE
+)
+
+library(BarmaRidgeBJPS2025)
+library(forecast) # time series
+library(ggplot2) # plotting
+library(dplyr) # data manipulation
+```
+
+# Example with simulated time series
+
+**Key Reference:** 
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model estimation.
+
+## Introduction
+
+This vignette reproduces a key simulation study from Cribari-Neto, Costa, & Fonseca (2025). We demonstrate a common numerical instability issue that arises when fitting beta autoregressive moving average ($\beta\text{ARMA}$) models. Specifically, we will fit a $\beta\text{ARMA(1,4)}$ model to data generated from a $\beta\text{AR(1)}$ process. This example corresponds to the results shown in Table 1 (unpenalized estimation) and Table 3 (penalized estimation) of the paper. We first show how standard optimization methods can fail to converge or produce implausible estimates and then demonstrate how the proposed ridge penalization provides a more stable and accurate solution.
+
+For the sake of brevity, we are presenting the code chunk for only one optimization example. In the majority of the other routines, the optimizations have just minor changes; typically, only the method argument in the function is changed.
+
+## Simulation and Model Setup
+
+### Functions
+
+To demonstrate the package's internal mechanics for this vignette, we
+access several non-exported functions using the `:::` operator. This
+makes them easier to call and inspect in the following examples.
+
+```{r, setup_internal_functions}
+# -----------------------------------------------------------------------------
+# Core functions for the standard ARMA model
+# -----------------------------------------------------------------------------
+start_values <- BarmaRidgeBJPS2025:::start_values
+loglik_arma <- BarmaRidgeBJPS2025:::loglik_arma
+score_vector_arma <- BarmaRidgeBJPS2025:::score_vector_arma
+inf_matrix_arma <- BarmaRidgeBJPS2025:::inf_matrix_arma
+
+# -----------------------------------------------------------------------------
+# Corresponding functions for the ridge-penalized (L2) model
+# -----------------------------------------------------------------------------
+loglik_arma_ridge <- BarmaRidgeBJPS2025:::loglik_arma_ridge
+score_vector_arma_ridge <- BarmaRidgeBJPS2025:::score_vector_arma_ridge
+
+# -----------------------------------------------------------------------------
+# Utility function for creating link structures
+# -----------------------------------------------------------------------------
+make_link_structure <- BarmaRidgeBJPS2025:::make_link_structure
+```
+
+### Specification
+
+This chunk configures all parameters for our simulation. We define the
+model structure (link function, $\beta\text{ARMA}$ order) and the true parameter values used to generate the synthetic time series data.
+
+```{r, simulation_setup}
+# --------------------------------------------------------------------------- #
+# 1. Link Function Setup
+# --------------------------------------------------------------------------- #
+# We'll use a logit link for the conditional mean of the beta distribution.
+link <- "logit"
+link_structure <- make_link_structure(link)
+
+# Extract the link function, its inverse, and the derivative of the inverse.
+linkfun <- link_structure$linkfun
+linkinv <- link_structure$linkinv
+mu.eta <- link_structure$mu.eta
+
+# --------------------------------------------------------------------------- #
+# 2. Model Specification
+# --------------------------------------------------------------------------- #
+# Define the ARMA(p, q) order for the model we intend to fit.
+ar_vec <- 1 # p = 1
+ma_vec <- 1:4 # q = 4
+
+# --------------------------------------------------------------------------- #
+# 3. Data Generation Parameters
+# --------------------------------------------------------------------------- #
+# Set a seed for reproducibility of the data simulation.
+seed <- 34
+
+# Define the sample sizes.
+n <- 250 # Final sample size after burn-in
+burn <- 1000 # Observations to discard (burn-in period)
+nburn <- n + burn # Total observations to generate
+
+# Set the true parameter values for the data generating process.
+# Note: The true model is a BARMA(1,0), which will be fitted using BARMA(1,4)
+# model.
+varphi_true <- 0.4 # AR(1) coefficient
+theta_true <- NA # No MA terms in the true model
+alpha_true <- 0 # Intercept for the linear predictor
+phi_true <- 20 # Precision parameter for the Beta distribution
+```
+
+### Time Series
+
+The initial `burn` observations are discarded as a burn-in period. This helps mitigate the influence of initial conditions and ensures the simulated series has reached its stationary distribution.
+
+```{r, simulate_data}
+# Set the seed to ensure the data simulation is reproducible.
+set.seed(seed)
+
+# 1. Simulate a BARMA time series using the true parameters defined previously.
+y_burn <- simu_barma(
+  n = nburn,
+  varphi = varphi_true,
+  theta = theta_true,
+  alpha = alpha_true,
+  phi = phi_true
+)
+
+# 2. Discard the burn-in period and create the final time series object.
+# We assume monthly data, so we set the frequency to 12.
+final_indices <- (burn + 1):nburn
+y <- ts(y_burn[final_indices], frequency = 12)
+
+```
+
+Time series plot
+
+```{r, plot_simulated_data}
+# First, convert the time series object into a tibble for plotting.
+df <- tibble(time = 1:length(y), value = y)
+
+# Now, create the line plot of the simulated data.
+ggplot(df, aes(x = time, y = value)) +
+  geom_line() +
+  labs(
+    x = "Time",
+    y = "",
+    title = " "
+  ) +
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.20))
+```
+
+### Start values
+
+```{r}
+# 3. Obtain initial parameter estimates using the package's helper function.
+start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
+
+# 4. Display the starting values in a formatted table.
+start_par_print <- round(start_par, 4)
+start_par_print <- t(as.data.frame(start_par_print))
+rownames(start_par_print) <- NULL
+
+knitr::kable(
+  start_par_print,
+  caption = "Initial parameter estimates for the BARMA(1,4) model."
+)
+```
+
+### Estimation 
+
+```{r, estimation_setup}
+# --------------------------------------------------------------------------- #
+# Define key parameters for the estimation procedure
+# --------------------------------------------------------------------------- #
+# Determine the maximum AR and MA lags.
+p_max <- max(ar_vec)
+q_max <- max(ma_vec)
+
+# Get the number of AR (p) and MA (q) parameters to be estimated.
+p_len <- length(ar_vec)
+q_len <- length(ma_vec)
+
+# Get the length of the time series.
+n <- length(y)
+
+# --------------------------------------------------------------------------- #
+# Define the penalty term for the ridge regression
+# --------------------------------------------------------------------------- #
+# This penalty term will be used later for the penalized estimation.
+# The formula provides a small shrinkage value that depends on sample size.
+a_max <- max(ar_vec, ma_vec)
+penalty <- 1 / (n - a_max)^(0.90)
+```
+
+## Optimization
+
+### Conditional Maximum Likelihood Estimation
+
+Demonstrating Numerical Instability
+
+We begin by estimating the model parameters using conditional maximum likelihood estimation (CMLE). To perform the numerical optimization, we use the Broyden-Fletcher-Goldfarb-Shannon (BFGS) algorithm, a quasi-Newton method that is commonly used for this purpose. The code below calls the `stats::optim` function, providing the negative log-likelihood as the objective function (`fn`) and the score vector as its gradient (`gr`). As shown in the results, this standard approach leads to implausible parameter estimates, highlighting the numerical instability issue.
+
+We use the BFGS algorithm that uses gradient information for efficient
+optimization.
+
+```{r, opt_barma_optim}
+# --------------------------------------------------------------------------- #
+# Perform Conditional Maximum Likelihood Estimation (CMLE) via `stats::optim()`
+# --------------------------------------------------------------------------- #
+optim_AG_BFGS <- stats::optim(
+  par = start_par,
+
+  # The objective function (fn) is the negative log-likelihood.
+  fn = function(estimate) {
+    (-1) * loglik_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+
+  # The gradient (gr) is the negative score vector (the first derivative
+  # of the log-likelihood).
+  gr = function(estimate) {
+    (-1) * score_vector_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+  method = "BFGS"
+)
+
+# Display the final parameter estimates in a formatted table.
+optim_AG_BFGS_par <- round(optim_AG_BFGS$par, 4)
+optim_AG_BFGS_par <- t(as.data.frame(optim_AG_BFGS_par))
+rownames(optim_AG_BFGS_par) <- NULL
+
+# Convergence status from the optimization
+conv_status <- optim_AG_BFGS$convergence
+conv_status <- ifelse(optim_AG_BFGS$convergence == 0, "Yes", "No")
+
+knitr::kable(
+  cbind("Convergence" = conv_status, optim_AG_BFGS_par),
+  digits = 4,
+  caption = "Convergence status and parameter estimates for $\\beta$ARMA(1,4)
+  model using `stats::optim` package."
+)
+```
+
+```{r, opt_barma_lbfgs, include=FALSE}
+# --------------------------------------------------------------------------- #
+# Perform CMLE using the lbfgs package
+# --------------------------------------------------------------------------- #
+lbfgs_AG <- lbfgs::lbfgs(
+  vars = start_par,
+  call_eval = function(estimate) {
+    (-1) * loglik_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+  call_grad = function(estimate) {
+    (-1) * score_vector_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+  invisible = 1
+)
+
+# Display the final parameter estimates in a formatted table.
+lbfgs_AG_par <- round(optim_AG_BFGS$par, 4)
+lbfgs_AG_par <- t(as.data.frame(lbfgs_AG_par))
+rownames(lbfgs_AG_par) <- NULL
+
+knitr::kable(
+  lbfgs_AG_par,
+  digits = 4,
+  caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
+  `lbfgs::lbfgs` package."
+)
+```
+
+```{r, opt_barma_optim_lbfgsb, include=FALSE}
+# -----------------------------------------------------------------------
+# Optimization: stats::optim(), Analytical Gradient, L-BFGS-B
+# -----------------------------------------------------------------------
+
+# The absolute value of the initial alpha is used to avoid numerical issues
+# with the L-BFGS-B algorithm.
+
+start_par_LBFGSB <- start_par
+start_par_LBFGSB[1] <- abs(start_par_LBFGSB[1])
+
+optim_AG_LBFGSB <- stats::optim(
+  par = start_par_LBFGSB,
+  fn = function(estimate) {
+    (-1) * loglik_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+  gr = function(estimate) {
+    (-1) * score_vector_arma(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link
+    )
+  },
+  method = "L-BFGS-B"
+)
+
+# Display the final parameter estimates in a formatted table.
+optim_AG_LBFGSB_par <- round(optim_AG_LBFGSB$par, 4)
+optim_AG_LBFGSB_par <- t(as.data.frame(optim_AG_LBFGSB_par))
+rownames(optim_AG_LBFGSB_par) <- NULL
+
+knitr::kable(
+  optim_AG_LBFGSB_par,
+  digits = 4,
+  caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
+  `stats::optim` (L-BFGS-B)."
+)
+```
+
+```{r, jeffreys_function, include=FALSE}
+# ---------------------------------------------------------------------------
+# Jeffreys's prior, function to be optimized
+# ---------------------------------------------------------------------------
+loglike_JeffreysPenalty <- function(y, ar, ma,
+                                    alpha, varphi, theta, phi, link) {
+  # log-likelihood
+  loglik <- loglik_arma(
+    y = y,
+    ar = ar,
+    ma = ma,
+    alpha = alpha,
+    varphi = varphi,
+    theta = theta,
+    phi = phi,
+    link = link
+  )
+
+  # information matrix
+  inf_matrix_list <- inf_matrix_arma(
+    y = y,
+    ar = ar,
+    ma = ma,
+    alpha = alpha,
+    varphi = varphi,
+    theta = theta,
+    phi = phi,
+    link = link
+  )
+
+  inf_matrix <- inf_matrix_list$fisher_info_mat
+
+  # log of the Jeffreys prior
+  logJefPen <- 0.5 * log(det(inf_matrix))
+
+  logJefPen_final <- loglik + logJefPen
+
+  return(logJefPen_final)
+}
+```
+
+```{r, opt_barma_optim_JEFFREYS, include=FALSE}
+# =============================================================================
+# Jeffreys's prior Penalty, BFGS
+# =============================================================================
+optim_NG_BFGS_JEFFREYS <- optim(
+  par = start_par,
+  fn = function(estimate) {
+    (-1) * loglike_JeffreysPenalty(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2],
+      theta = estimate[3:6],
+      phi = estimate[7],
+      link = link
+    )
+  },
+  method = "BFGS"
+)
+
+# Display the final parameter estimates in a formatted table.
+optim_NG_BFGS_JEFFREYS_par <- round(optim_NG_BFGS_JEFFREYS$par, 4)
+optim_NG_BFGS_JEFFREYS_par <- t(as.data.frame(optim_NG_BFGS_JEFFREYS_par))
+rownames(optim_NG_BFGS_JEFFREYS_par) <- NULL
+
+knitr::kable(
+  optim_NG_BFGS_JEFFREYS_par,
+  digits = 4,
+  caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
+    Jeffreys's Prior with `stats::optim`."
+)
+```
+
+### Ridge Penalization
+
+Enhancing Stability with Ridge Penalization
+
+To address the instability, we now apply the ridge penalization scheme proposed in the paper. This method adds a simple penalty term to the log-likelihood function, which enhances its curvature and makes the optimization process more stable. This modification reduces the chance of convergence failures and helps prevent the kind of implausible estimates we saw in the previous step.
+
+The penalty value is $\lambda = 1 / (n-a)^{0.90}$, a choice that was found to provide a good trade-off between bias and variance in the paper's simulation studies. The code below implements this penalized estimation.
+
+```{r, opt_barma_optim_RIDGE, include=TRUE}
+optim_AG_BFGS_RIDGE <- stats::optim(
+  par = start_par,
+  fn = function(estimate) {
+    (-1) * loglik_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  gr = function(estimate) {
+    (-1) * score_vector_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  method = "BFGS"
+)
+
+# Display the final parameter estimates in a formatted table.
+optim_AG_BFGS_RIDGE_par <- round(optim_AG_BFGS_RIDGE$par, 4)
+optim_AG_BFGS_RIDGE_par <- t(as.data.frame(optim_AG_BFGS_RIDGE_par))
+rownames(optim_AG_BFGS_RIDGE_par) <- NULL
+
+# Convergence status from the optimization
+conv_status <- optim_AG_BFGS_RIDGE$convergence
+conv_status <- ifelse(optim_AG_BFGS_RIDGE$convergence == 0, "Yes", "No")
+
+knitr::kable(
+  cbind("Convergence" = conv_status, optim_AG_BFGS_RIDGE_par),
+  digits = 4,
+  caption = "Convergence status and parameter estimates for $\\beta$ARMA(1,4) model using **Ridge Penalyzation** with `stats::optim`."
+)
+```
+
+```{r, opt_barma_optim_RIDGE_lbfgsb, include=FALSE}
+optim_AG_LBFGSB_RIDGE <- stats::optim(
+  par = start_par,
+  fn = function(estimate) {
+    (-1) * loglik_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  gr = function(estimate) {
+    (-1) * score_vector_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  
+  method = "L-BFGS-B"
+)
+# Display the final parameter estimates in a formatted table.
+optim_AG_LBFGSB_RIDGE_par <- round(optim_AG_LBFGSB_RIDGE$par, 4)
+optim_AG_LBFGSB_RIDGE_par <- t(as.data.frame(optim_AG_LBFGSB_RIDGE_par))
+rownames(optim_AG_LBFGSB_RIDGE_par) <- NULL
+
+knitr::kable(
+  optim_AG_LBFGSB_RIDGE_par,
+  digits = 4,
+  caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
+    Ridge Penalyzation with `stats::optim` with `L-BFGS-b`."
+)
+```
+
+```{r, opt_barma_lbfgs_RIDGE_lbfgsb, include=FALSE}
+lbfgs_AG_RIDGE <- lbfgs::lbfgs(
+  vars = start_par,
+  call_eval = function(estimate) {
+    (-1) * loglik_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  call_grad = function(estimate) {
+    (-1) * score_vector_arma_ridge(
+      y = y,
+      ar = ar_vec,
+      ma = ma_vec,
+      alpha = estimate[1],
+      varphi = estimate[2:(p_len + 1)],
+      theta = estimate[(p_len + 2):(p_len + q_len + 1)],
+      phi = estimate[p_len + q_len + 2],
+      link = link,
+      penalty = penalty
+    )
+  },
+  invisible = 1,
+)
+
+# Display the final parameter estimates in a formatted table.
+lbfgs_AG_RIDGE_par <- round(lbfgs_AG_RIDGE$par, 4)
+lbfgs_AG_RIDGE_par <- t(as.data.frame(lbfgs_AG_RIDGE_par))
+rownames(lbfgs_AG_RIDGE_par) <- NULL
+
+knitr::kable(
+  lbfgs_AG_RIDGE_par,
+  digits = 4,
+  caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
+    Ridge Penalyzation with `lbfgs::lbfgs`."
+)
+```
+
+## Comparison of Results
+
+The tables below summarize the parameter estimates from both the CMLE (unpenalized) and PCMLE (ridge-penalized) optimization methods. 
+
+As shown, the standard CMLE method fails to converge. In contrast, the ridge-penalized method converges successfully and yields estimates that are much closer to the true parameter values, demonstrating its effectiveness in enhancing numerical stability
+
+In the following tables, the algorithms are denoted as follows: B (BFGS), LB (L-BFGS), L (L-BFGS-B), B$_\text{J}$ (BFGS with Jeffreys prior), and B$_\text{r}$ (BFGS with ridge penalization).
+
+```{r, include=FALSE}
+# =============================================================================
+# Results
+# =============================================================================
+# estimates aux
+optim_AG_BFGS_aux <- c(
+  optim_AG_BFGS$convergence,
+  optim_AG_BFGS$par
+)
+
+optim_AG_LBFGSB_aux <- c(
+  optim_AG_LBFGSB$convergence,
+  optim_AG_LBFGSB$par
+)
+
+lbfgs_AG_aux <- c(
+  lbfgs_AG$convergence,
+  lbfgs_AG$par
+)
+
+optim_NG_BFGS_JEFFREYS_aux <- c(
+  optim_NG_BFGS_JEFFREYS$convergence,
+  optim_NG_BFGS_JEFFREYS$par
+)
+
+optim_AG_BFGS_RIDGE_aux <- c(
+  optim_AG_BFGS_RIDGE$convergence,
+  optim_AG_BFGS_RIDGE$par
+)
+
+optim_AG_LBFGSB_RIDGE_aux <- c(
+  optim_AG_LBFGSB_RIDGE$convergence,
+  optim_AG_LBFGSB_RIDGE$par
+  )
+
+lbfgs_AG_RIDGE_aux <- c(
+  lbfgs_AG_RIDGE$convergence,
+  lbfgs_AG_RIDGE$par
+)
+
+# estimates auxiliar1: analitycal and numeric gradient
+estimates_aux1 <- rbind(
+  optim_AG_BFGS_aux,
+  optim_AG_LBFGSB_aux,
+  lbfgs_AG_aux,
+  optim_NG_BFGS_JEFFREYS_aux,
+  optim_AG_BFGS_RIDGE_aux,
+  optim_AG_LBFGSB_RIDGE_aux,
+  lbfgs_AG_RIDGE_aux
+)
+
+# estimates auxiliar2: only analitycal gradient
+estimates_aux2 <- rbind(
+  optim_AG_BFGS_aux,
+  optim_AG_LBFGSB_aux,
+  lbfgs_AG_aux,
+  optim_NG_BFGS_JEFFREYS_aux,
+  optim_AG_BFGS_RIDGE_aux,
+  optim_AG_LBFGSB_RIDGE_aux,
+  lbfgs_AG_RIDGE_aux
+)
+
+
+package_used <- c(
+  "optim",
+  "optim",
+  "lbfgs",
+  "optim",
+  "optim",
+  "optim",
+  "lbfgs"
+)
+
+method_used <- c(
+  "BFGS",
+  "L-BFGS-B",
+  "L-BFGS",
+  "BFGS",
+  "BFGS",
+  "L-BFGS-B",
+  "L-BFGS"
+)
+
+estimates_aux2 <- data.frame(estimates_aux2)
+colnames(estimates_aux2) <- c(
+  "Conv",
+  "alpha", "varphi1",
+  "theta1", "theta2", "theta3", "theta4",
+  "phi"
+)
+
+penalty_used <- c(rep("No", 3), "Jeffreys", "Ridge", "Ridge", "Ridge")
+
+conv_status <- ifelse(estimates_aux2$Conv == 0, "Yes", "No")
+
+estimates_aux2 <- round(estimates_aux2, 4)
+
+estimates_final <- data.frame(
+  package_used,
+  method_used,
+  penalty_used,
+  estimates_aux2
+)
+
+estimates_final$Conv <- conv_status
+
+colnames(estimates_final) <- c(
+  "Package", "Algorithm", "Penalty", "Conv.",
+  "alpha", "varphi",
+  "theta1", "theta2", "theta3", "theta4",
+  "phi"
+)
+
+rownames(estimates_final) <- NULL
+
+# Display the final parameter estimates in a formatted table.
+knitr::kable(
+  estimates_final,
+  digits = 4,
+  caption = ""
+)
+```
+
+```{r, include=FALSE}
+# ----------------------------------------------------------------------------
+estimates_final_part1 <- estimates_final[1:3, c(5:11)]
+estimates_final_part2 <- estimates_final[4:7, c(5:11)]
+
+rownames_part1 <- c(
+  "$\\text{B}$",
+  "$\\text{LB}$",
+  "$\\text{L}$"
+)
+
+rownames_part2 <- c(
+  "$\\text{B}_{\\text{J}}$",
+  "$\\text{B}_{\\text{r}}$",
+  "$\\text{LB}_{\\text{r}}$",
+  "$\\text{L}_{\\text{r}}$"
+)
+
+estimates_final_part1 <- cbind("Algorithm" = rownames_part1,
+                               estimates_final_part1)
+estimates_final_part2 <- cbind("Algorithm" =rownames_part2, 
+                               estimates_final_part2)
+
+rownames(estimates_final_part1) <- NULL
+rownames(estimates_final_part2) <- NULL
+
+```
+
+```{r, echo=FALSE}
+knitr::kable(
+  estimates_final_part1,
+  caption =
+    "Parameter estimates for the $\\beta$ARMA(1,4) model obtained using different
+  algorithms; data were generated from a $\\beta$AR(1) process."
+)
+```
+
+```{r, echo=FALSE}
+knitr::kable(
+  estimates_final_part2,
+  caption =
+    "Parameter estimates for the $\\beta$ARMA(1,4) model obtained using penalized log-likelihood and different optimization algorithms; data generated from a $\\beta$AR(1) model."
+)
+```
+
+```{r, echo=FALSE, eval=FALSE}
+
+estimates_final_print <- cbind("Algorithm" = c(rownames_part1, rownames_part2),
+                               estimates_final)
+knitr::kable(
+  estimates_final_print,
+  caption =
+    ""
+)
+```
