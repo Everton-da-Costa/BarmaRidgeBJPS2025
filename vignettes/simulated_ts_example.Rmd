@@ -741,7 +741,7 @@ rownames_part2 <- c(
 
 estimates_final_part1 <- cbind("Algorithm" = rownames_part1,
                                estimates_final_part1)
-estimates_final_part2 <- cbind("Algorithm" =rownames_part2, 
+estimates_final_part2 <- cbind("Algorithm" = rownames_part2, 
                                estimates_final_part2)
 
 rownames(estimates_final_part1) <- NULL
