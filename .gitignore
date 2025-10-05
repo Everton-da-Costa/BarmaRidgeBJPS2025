@@ -2,9 +2,5 @@
 .Rhistory
 .Rdata
 .httr-oauth
+*.tar.gz
 .DS_Store
-.quarto
-inst/doc
-/doc/
-/Meta/
-R
