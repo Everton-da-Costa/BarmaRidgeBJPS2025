@@ -87,7 +87,7 @@ Prerequisites
 To be explicit, this package requires the following external R packages. You can run the command below to ensure all dependencies are installed on your system before proceeding.
 
 ```R
-install.packages(c("doMC", "foreach", "Rdpack", "doRNG", "dplyr", "ggplot2", "gridExtra", "scales", "zoo"))
+install.packages(c("doMC", "foreach", "Rdpack", "doRNG", "dplyr", "ggplot2", "gridExtra", "zoo"))
 ```
 
 **Last Tested Environment**

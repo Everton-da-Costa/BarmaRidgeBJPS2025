@@ -5,7 +5,6 @@
 #' @importFrom ggplot2 ggplot
 #' @importFrom gridExtra grid.arrange
 #' @importFrom Rdpack reprompt
-#' @importFrom scales percent
 #' @importFrom zoo as.yearmon
 #' @importFrom doMC registerDoMC
 #' @importFrom foreach %dopar% foreach

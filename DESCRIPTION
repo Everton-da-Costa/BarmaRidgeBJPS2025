@@ -41,8 +41,7 @@ Imports:
     doRNG,
     stats,
     dplyr,
-    gridExtra,
-    scales
+    gridExtra
 Suggests:
     xtable,
     forecast,
