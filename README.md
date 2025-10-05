@@ -82,9 +82,9 @@ remotes::install_github("everton-da-costa/BarmaRidgeBJPS2025",
                         build_vignettes = TRUE)
 ```
 
-Prerequisites
+**Prerequisites**
 
-To be explicit, this package requires the following external R packages. You can run the command below to ensure all dependencies are installed on your system before proceeding.
+This package requires the following external R packages. You can run the command below to ensure all dependencies are installed on your system before proceeding.
 
 ```R
 install.packages(c("doMC", "foreach", "Rdpack", "doRNG", "dplyr", "ggplot2", "gridExtra", "zoo"))
