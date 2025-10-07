@@ -18,7 +18,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -32,13 +32,13 @@ knitr::opts_chunk$set(
 
 # Example with simulated time series
 
-**Key Reference:** 
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
-Numerical stability enhancements in beta autoregressive moving average model estimation.
-
 ## Introduction
 
 This vignette reproduces a key simulation study from Cribari-Neto, Costa, & Fonseca (2025). We demonstrate a common numerical instability issue that arises when fitting beta autoregressive moving average ($\beta\text{ARMA}$) models. Specifically, we will fit a $\beta\text{ARMA(1,4)}$ model to data generated from a $\beta\text{AR(1)}$ process. This example corresponds to the results shown in Table 1 (unpenalized estimation) and Table 3 (penalized estimation) of the paper. We first show how standard optimization methods can fail to converge or produce implausible estimates and then demonstrate how the proposed ridge penalization provides a more stable and accurate solution.
+
+**Key Reference:** 
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model estimation.
 
 ## Simulation and Model Setup
 
@@ -164,7 +164,7 @@ ggplot(df, aes(x = time, y = value)) +
 
 ### Start values
 
-```{r}
+```{r, start_values}
 # 3. Obtain initial parameter estimates using the package's helper function.
 start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
 
@@ -172,12 +172,15 @@ start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
 start_par_print <- round(start_par, 4)
 start_par_print <- t(as.data.frame(start_par_print))
 rownames(start_par_print) <- NULL
+```
 
+```{r, print_start_values, echo=FALSE}
 knitr::kable(
   start_par_print,
   caption = "Initial parameter estimates for the BARMA(1,4) model."
 )
 ```
+
 
 ### Estimation 
 
@@ -264,7 +267,9 @@ rownames(optim_AG_BFGS_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_BFGS$convergence
 conv_status <- ifelse(optim_AG_BFGS$convergence== 0, "Yes", "No")
+```
 
+```{r, print_opt_barma_optim, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_BFGS_par),
   digits = 4,
@@ -317,8 +322,10 @@ rownames(lbfgs_AG_par) <- NULL
 
 # Convergence status from the optimization
 conv_status <- lbfgs_AG$convergence
-conv_status <- ifelse(lbfgs_AG$convergence== 0, "Yes", "No")
+conv_status <- ifelse(lbfgs_AG$convergence == 0, "Yes", "No")
+```
 
+```{r, print_opt_barma_lbfgs, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, lbfgs_AG_par),
   digits = 4,
@@ -329,7 +336,7 @@ knitr::kable(
 
 We also use the `L-BFGS-B` method within `stats::optim`. Note that for this specific algorithm, we use the absolute value of the starting parameter for $\alpha$ to ensure a positive starting point, which can help prevent numerical issues.
 
-```{r, opt_barma_optim_lbfgsb}
+```{r, opt_optim_lbfgsb}
 # -----------------------------------------------------------------------
 # Optimization: stats::optim(), Analytical Gradient, L-BFGS-B
 # -----------------------------------------------------------------------
@@ -374,12 +381,14 @@ rownames(optim_AG_LBFGSB_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_LBFGSB$convergence
 conv_status <- ifelse(optim_AG_LBFGSB$convergence== 0, "Yes", "No")
+```
 
+```{r, print_optim_lbfgsb, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_LBFGSB_par),
   digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
-  `stats::optim` (L-BFGS-B)."
+  `stats::optim` with `L-BFGS-B` algorithm."
 )
 ```
 
@@ -428,7 +437,7 @@ loglike_JeffreysPenalty <- function(y, ar, ma,
 
 Using this helper function, we now perform the optimization with the Jeffreys prior, using the `BFGS` algorithm.
 
-```{r, opt_barma_optim_JEFFREYS}
+```{r, opt_optim_JEFFREYS}
 # =============================================================================
 # Jeffreys's prior Penalty, BFGS
 # =============================================================================
@@ -457,7 +466,9 @@ rownames(optim_NG_BFGS_JEFFREYS_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_NG_BFGS_JEFFREYS$convergence
 conv_status <- ifelse(optim_NG_BFGS_JEFFREYS$convergence== 0, "Yes", "No")
+```
 
+```{r, print_opt_optim_JEFFREYS, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_NG_BFGS_JEFFREYS_par),  digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
@@ -513,7 +524,9 @@ rownames(optim_AG_BFGS_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_BFGS_RIDGE$convergence
 conv_status <- ifelse(optim_AG_BFGS_RIDGE$convergence== 0, "Yes", "No")
+```
 
+```{r, print_opt_optim_RIDGE, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_BFGS_RIDGE_par),
   digits = 4,
@@ -523,7 +536,7 @@ knitr::kable(
 
 The following chunk implements the same ridge-penalized estimation, this time using the `L-BFGS-B` algorithm.
 
-```{r, opt_barma_optim_RIDGE_lbfgsb}
+```{r, opt_optim_RIDGE_lbfgsb}
 optim_AG_LBFGSB_RIDGE <- stats::optim(
   par = start_par,
   fn = function(estimate) {
@@ -563,7 +576,9 @@ rownames(optim_AG_LBFGSB_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_LBFGSB_RIDGE$convergence
 conv_status <- ifelse(optim_AG_LBFGSB_RIDGE$convergence== 0, "Yes", "No")
+```
 
+```{r, print_opt_optim_RIDGE_lbfgsb, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_LBFGSB_RIDGE_par),
   digits = 4,
@@ -614,7 +629,9 @@ rownames(lbfgs_AG_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- lbfgs_AG_RIDGE$convergence
 conv_status <- ifelse(lbfgs_AG_RIDGE$convergence== 0, "Yes", "No")
+```
 
+```{r, print_opt_barma_lbfgs_RIDGE_lbfgsb, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, lbfgs_AG_RIDGE_par),
   digits = 4,
@@ -628,8 +645,6 @@ knitr::kable(
 The tables below summarize the parameter estimates from both the CMLE (unpenalized) and PCMLE (ridge-penalized) optimization methods. 
 
 As shown, the standard CMLE fails to converge. In contrast, the ridge-penalized converges successfully and yields estimates that are much closer to the true parameter values, demonstrating its effectiveness in enhancing numerical stability
-
-In the following tables, the algorithms are denoted as follows: B (BFGS), LB (L-BFGS), L (L-BFGS-B), B$_\text{J}$ (BFGS with Jeffreys prior), and B$_\text{r}$ (BFGS with ridge penalization).
 
 ```{r, table_results_complete}
 # =============================================================================
@@ -678,7 +693,7 @@ res7 <- data.frame(Package = "lbfgs",
                    data.frame(t(lbfgs_AG_RIDGE$par)))
 
 # The `lbfgs()` function returns unnamed parameters, which creates default 
-# column names. To ensure `rbind` works correctly, we force the column names 
+# column names. To ensure `rbind` works correctly, we use the column names 
 # for the lbfgs results (res3, res7) to match the names from the optim results 
 # (res1).
 colnames(res3)[5:11] <- colnames(res1)[5:11]
@@ -686,17 +701,21 @@ colnames(res7)[5:11] <- colnames(res1)[5:11]
 
 # Combine all individual result into a single data frame.
 estimates_final <- rbind(res1, res2, res3, res4, res5, res6, res7)
+estimates_final[,5:11] <- round(estimates_final[,5:11], 4)
 
 # Create a clear "Yes/No" column for convergence and add it to the data frame
 estimates_final$`Conv.` <- ifelse(estimates_final$Conv == 0, "Yes", "No")
+```
 
+```{r, print_table_results_complete, echo=FALSE, eval=FALSE}
 # Display the final table
 knitr::kable(
   estimates_final,
-  digits = 4,
   caption = ""
 )
 ```
+
+In the following tables, the algorithms are denoted as follows: B (BFGS), LB (L-BFGS), L (L-BFGS-B), B$_\text{J}$ (BFGS with Jeffreys prior), and B$_\text{r}$ (BFGS with ridge penalization).
 
 ```{r, table_results_part1_part2}
 # ----------------------------------------------------------------------------
@@ -745,8 +764,9 @@ knitr::kable(
 ```
 
 ```{r, echo=FALSE, eval=FALSE}
-estimates_final_print <- cbind("Algorithm" = c(rownames_part1, rownames_part2),
-                               estimates_final)
+estimates_final_print <- cbind(
+  "Algorithm" = c(rownames_part1, rownames_part2), estimates_final
+  )
 knitr::kable(
   estimates_final_print,
   caption =
