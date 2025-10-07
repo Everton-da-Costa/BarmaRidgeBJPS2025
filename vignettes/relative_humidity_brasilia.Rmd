@@ -11,7 +11,7 @@ output:
     number_sections: true
     fig_caption: true
 vignette: >
-  %\VignetteIndexEntry{Application: Relative Humidity in Brasília}
+  %\VignetteIndexEntry{Application: Modeling Relative Humidity in Brasília}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -524,3 +524,19 @@ knitr::kable(
 ## Conclusion
 
 This vignette demonstrated the application of the `BarmaRidgeBJPS2025` package in handling numerical instability. We showed that for the Brasília relative humidity dataset, standard CMLE produced implausible estimates on a specific subsample. In contrast, the Penalized CMLE (PCMLE) approach, along with the seasonal block bootstrap, provided stable and reliable results, underscoring the value of these methods for time series analysis.
+
+## Reproducibility
+
+To ensure the long-term reproducibility of this analysis, the following section details the specific computational environment in which this document was generated. This includes the R version, operating system, and all loaded package versions. This information is crucial for anyone attempting to replicate these findings in the future.
+
+```{r, session_info, echo=FALSE}
+cat("=================================================================", "\n")
+cat("Session Information", "\n")
+cat("=================================================================", "\n")
+
+cat("This report was generated at:", 
+    format(Sys.time(), "%B %d, %Y at %I:%M %p"), "\n")
+cat("\n")
+
+print(sessionInfo())
+```

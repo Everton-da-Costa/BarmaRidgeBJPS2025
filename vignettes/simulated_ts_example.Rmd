@@ -1,6 +1,5 @@
 ---
-title: "A Simulated Data Example: Addressing Numerical Instability in 
-$\\beta\\text{ARMA}$ Models"
+title: "A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"
 subtitle: "Reproducing the CMLE and PCMLE from Cribari-Neto, Costa, & Fonseca (2025)"
 author: "Everton da Costa"
 date: "`r Sys.Date()`"
@@ -11,7 +10,6 @@ output:
     toc_depth: 3
     number_sections: true
     fig_caption: true
-# bibliography: ../inst/REFERENCES.bib
 vignette: >
   %\VignetteIndexEntry{"A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -169,10 +167,10 @@ ggplot(df, aes(x = time, y = value)) +
 Before running the optimization, we need to generate initial parameter estimates. The `start_values()` helper function provides starting points based on the time series data, which helps the optimization algorithm converge more efficiently.
 
 ```{r, start_values}
-# 3. Obtain initial parameter estimates using the package's helper function.
+# Obtain initial parameter estimates using the package's helper function.
 start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
 
-# 4. Display the starting values in a formatted table.
+# Display the starting values in a formatted table.
 start_par_print <- round(start_par, 4)
 start_par_print <- t(as.data.frame(start_par_print))
 rownames(start_par_print) <- NULL
@@ -312,6 +310,10 @@ lbfgs_AG <- lbfgs::lbfgs(
   },
   invisible = 1
 )
+
+# `lbfgs()` returns an unnamed vector, unlike `optim()`. We assign names from 
+# the `optim()` result.
+names(lbfgs_AG$par) <- names(optim_AG_BFGS$par)
 
 # Display the final parameter estimates in a formatted table.
 lbfgs_AG_par <- round(lbfgs_AG$par, 4)
@@ -571,7 +573,7 @@ rownames(optim_AG_LBFGSB_RIDGE_par) <- NULL
 
 # Convergence status from the optimization
 conv_status <- optim_AG_LBFGSB_RIDGE$convergence
-conv_status <- ifelse(optim_AG_LBFGSB_RIDGE$convergence== 0, "Yes", "No")
+conv_status <- ifelse(optim_AG_LBFGSB_RIDGE$convergence == 0, "Yes", "No")
 ```
 
 ```{r, print_opt_optim_RIDGE_lbfgsb, echo=FALSE}
@@ -617,6 +619,10 @@ lbfgs_AG_RIDGE <- lbfgs::lbfgs(
   invisible = 1,
 )
 
+# `lbfgs()` returns an unnamed vector, unlike `optim()`. We assign names from 
+# the `optim()` result.
+names(lbfgs_AG_RIDGE$par) <- names(optim_AG_BFGS$par)
+
 # Display the final parameter estimates in a formatted table.
 lbfgs_AG_RIDGE_par <- round(lbfgs_AG_RIDGE$par, 4)
 lbfgs_AG_RIDGE_par <- t(as.data.frame(lbfgs_AG_RIDGE_par))
@@ -624,7 +630,7 @@ rownames(lbfgs_AG_RIDGE_par) <- NULL
 
 # Convergence status from the optimization
 conv_status <- lbfgs_AG_RIDGE$convergence
-conv_status <- ifelse(lbfgs_AG_RIDGE$convergence== 0, "Yes", "No")
+conv_status <- ifelse(lbfgs_AG_RIDGE$convergence == 0, "Yes", "No")
 ```
 
 ```{r, print_opt_barma_lbfgs_RIDGE_lbfgsb, echo=FALSE}
@@ -774,4 +780,20 @@ knitr::kable(
   caption =
     ""
 )
+```
+
+## Reproducibility
+
+To ensure the long-term reproducibility of this analysis, the following section details the specific computational environment in which this document was generated. This includes the R version, operating system, and all loaded package versions. This information is crucial for anyone attempting to replicate these findings in the future.
+
+```{r, session_info, echo=FALSE}
+cat("=================================================================", "\n")
+cat("Session Information", "\n")
+cat("=================================================================", "\n")
+
+cat("This report was generated at:", 
+    format(Sys.time(), "%B %d, %Y at %I:%M %p"), "\n")
+cat("\n")
+
+print(sessionInfo())
 ```
