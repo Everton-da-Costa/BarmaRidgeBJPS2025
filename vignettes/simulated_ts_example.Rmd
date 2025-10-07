@@ -1,5 +1,5 @@
 ---
-title: "A Simulation Example: Addressing Numerical Instability in 
+title: "A Simulated Data Example: Addressing Numerical Instability in 
 $\\beta\\text{ARMA}$ Models"
 subtitle: "Reproducing the CMLE and PCMLE from Cribari-Neto, Costa, & Fonseca (2025)"
 author: "Everton da Costa"
@@ -13,7 +13,7 @@ output:
     fig_caption: true
 # bibliography: ../inst/REFERENCES.bib
 vignette: >
-  %\VignetteIndexEntry{Simulation: CMLE vs. PCMLE Instability}
+  %\VignetteIndexEntry{"A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -40,7 +40,9 @@ This vignette reproduces a key simulation study from Cribari-Neto, Costa, & Fons
 Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
 Numerical stability enhancements in beta autoregressive moving average model estimation.
 
-## Simulation and Model Setup
+## Simulated Data and Model Setup
+
+We begin by loading the R packages required for this simulation, including tools for time series analysis (`forecast`), data handling (`dplyr`), and plotting (`ggplot2`).
 
 ```{r, library}
 library(BarmaRidgeBJPS2025)
@@ -129,7 +131,7 @@ The initial `burn` observations are discarded as a burn-in period. This helps mi
 # Set the seed to ensure the data simulation is reproducible.
 set.seed(seed)
 
-# 1. Simulate a BARMA time series using the true parameters defined previously.
+# Simulate a BARMA time series using the true parameters defined previously.
 y_burn <- simu_barma(
   n = nburn,
   varphi = varphi_true,
@@ -138,7 +140,7 @@ y_burn <- simu_barma(
   phi = phi_true
 )
 
-# 2. Discard the burn-in period and create the final time series object.
+# Discard the burn-in period and create the final time series object.
 # We assume monthly data, so we set the frequency to 12.
 final_indices <- (burn + 1):nburn
 y <- ts(y_burn[final_indices], frequency = 12)
@@ -164,6 +166,8 @@ ggplot(df, aes(x = time, y = value)) +
 
 ### Start values
 
+Before running the optimization, we need to generate initial parameter estimates. The `start_values()` helper function provides starting points based on the time series data, which helps the optimization algorithm converge more efficiently.
+
 ```{r, start_values}
 # 3. Obtain initial parameter estimates using the package's helper function.
 start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
@@ -184,6 +188,7 @@ knitr::kable(
 
 ### Estimation 
 
+Before proceeding to the optimization, we define several key parameters for the estimation procedure. This includes the model order (`p` and `q`), the sample size (`n`), and the penalty term ($\lambda$) for the ridge regression.
 ```{r, estimation_setup}
 # --------------------------------------------------------------------------- #
 # Define key parameters for the estimation procedure
@@ -214,14 +219,9 @@ penalty <- 1 / (n - a_max)^(0.90)
 
 Demonstrating Numerical Instability
 
-We begin by estimating the model parameters using conditional maximum likelihood estimation (CMLE). To perform the numerical optimization, we use the Broyden-Fletcher-Goldfarb-Shannon (BFGS) algorithm, a quasi-Newton method that is commonly used for this purpose. The code below calls the `stats::optim` function, providing the negative log-likelihood as the objective function (`fn`) and the score vector as its gradient (`gr`). As shown in the results, this standard approach leads to implausible parameter estimates, highlighting the numerical instability issue.
+First, we'll attempt to fit the model using the standard Conditional Maximum Likelihood Estimation (CMLE). The following chunk uses the `stats::optim` function with the `BFGS` algorithm. As demonstrated in the paper, this standard approach can fail to converge for certain time series, which is what we expect to see here.
 
-We use the BFGS algorithm that uses gradient information for efficient
-optimization.
-
-In the next chunk we have the optimization using `optim()` function from `stats` package.
-
-```{r, opt_barma_optim}
+```{r, opt_optim}
 # --------------------------------------------------------------------------- #
 # Perform Conditional Maximum Likelihood Estimation (CMLE) via `stats::optim()`
 # --------------------------------------------------------------------------- #
@@ -269,7 +269,7 @@ conv_status <- optim_AG_BFGS$convergence
 conv_status <- ifelse(optim_AG_BFGS$convergence== 0, "Yes", "No")
 ```
 
-```{r, print_opt_barma_optim, echo=FALSE}
+```{r, print_opt_optim, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_BFGS_par),
   digits = 4,
@@ -278,11 +278,9 @@ knitr::kable(
 )
 ```
 
-The optimization using `lbfgs` function from library `lbfgs` are present in the next chunk.
+To show this is not an issue with a single optimization package, we'll try again using the `lbfgs` package, which provides an alternative implementation of the `L-BFGS` algorithm. The result is the same: the optimization fails to converge.
 
-As an alternative, we perform the same optimization using the `lbfgs()` function from the `lbfgs` package.
-
-```{r, opt_barma_lbfgs}
+```{r, opt_lbfgs}
 # --------------------------------------------------------------------------- #
 # Perform CMLE using the lbfgs package
 # --------------------------------------------------------------------------- #
@@ -325,7 +323,7 @@ conv_status <- lbfgs_AG$convergence
 conv_status <- ifelse(lbfgs_AG$convergence == 0, "Yes", "No")
 ```
 
-```{r, print_opt_barma_lbfgs, echo=FALSE}
+```{r, print_opt_lbfgs, echo=FALSE}
 knitr::kable(
   cbind("Convergence" = conv_status, lbfgs_AG_par),
   digits = 4,
@@ -334,7 +332,7 @@ knitr::kable(
 )
 ```
 
-We also use the `L-BFGS-B` method within `stats::optim`. Note that for this specific algorithm, we use the absolute value of the starting parameter for $\alpha$ to ensure a positive starting point, which can help prevent numerical issues.
+As a final attempt with standard CMLE, we use the `L-BFGS-B` method. Even with this variation, the optimization still does not converge, confirming the numerical instability of the unpenalized log-likelihood function for this dataset.
 
 ```{r, opt_optim_lbfgsb}
 # -----------------------------------------------------------------------
@@ -480,11 +478,9 @@ knitr::kable(
 
 Enhancing Stability with Ridge Penalization
 
-To address the instability, we now apply the ridge penalization scheme proposed in the paper. This method adds a simple penalty term to the log-likelihood function, which enhances its curvature and makes the optimization process more stable. This modification reduces the chance of convergence failures and helps prevent the kind of implausible estimates we saw in the previous step.
+Now, we apply the solution proposed in the paper: **ridge penalization**. This method introduces a small penalty to the log-likelihood function to enhance its curvature and stabilize the optimization. We use the recommended penalty value, $\lambda = 1 / (n-a)^{0.90}$. The following chunks show that with this penalty, all three optimization algorithms now converge successfully.
 
-The penalty value is $\lambda = 1 / (n-a)^{0.90}$, a choice that was found to provide a good trade-off between bias and variance in the paper's simulation studies. The code below implements this penalized estimation with `optim` function and `BFGS` algorithm.
-
-```{r, opt_barma_optim_RIDGE}
+```{r, opt_optim_RIDGE}
 optim_AG_BFGS_RIDGE <- stats::optim(
   par = start_par,
   fn = function(estimate) {
@@ -642,9 +638,7 @@ knitr::kable(
 
 ## Comparison of Results
 
-The tables below summarize the parameter estimates from both the CMLE (unpenalized) and PCMLE (ridge-penalized) optimization methods. 
-
-As shown, the standard CMLE fails to converge. In contrast, the ridge-penalized converges successfully and yields estimates that are much closer to the true parameter values, demonstrating its effectiveness in enhancing numerical stability
+The tables below summarize all results, corresponding to Table 1 (unpenalized) and Table 3 (penalized) in the paper. The key takeaway is clear: all unpenalized CMLE methods failed to converge, producing implausible parameter estimates. In contrast, all methods using ridge penalization converged successfully, yielding estimates very close to the true parameter values $(\varphi_1 = 0.4)$ and all $\theta_j = 0$ for $j = 1, \dots, 4$.
 
 ```{r, table_results_complete}
 # =============================================================================
@@ -721,6 +715,14 @@ In the following tables, the algorithms are denoted as follows: B (BFGS), LB (L-
 # ----------------------------------------------------------------------------
 estimates_final_part1 <- estimates_final[1:3, c(5:11)]
 estimates_final_part2 <- estimates_final[4:7, c(5:11)]
+
+# Col names of the LaTeX table
+ar_names <- paste0("$\\varphi_", ar_vec, "$")
+ma_names <- paste0("$\\theta_", ma_vec, "$")
+barma_names <- c("$\\alpha$", ar_names, ma_names, "$\\phi$")
+
+colnames(estimates_final_part1) <- barma_names
+colnames(estimates_final_part2) <- barma_names
 
 rownames_part1 <- c(
   "$\\text{B}$",
