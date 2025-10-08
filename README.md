@@ -121,12 +121,12 @@ The main vignette showcases the practical application of the package's methods.
 You can open the vignette directly from your R console to view the full analysis and code.
 
 ```R
-# Open the main application case study
+# Open the numerical example with simulated data
 vignette("simulated_ts_example", package = "BarmaRidgeBJPS2025")
 ```
 
 ```R
-# Open the main application case study
+# Open the empirical application with Brasília humidity data
 vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
 ```
 
