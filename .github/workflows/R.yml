@@ -36,25 +36,27 @@ jobs:
         with:
           r-version: ${{ matrix.r-version }}
 
-      # Step 3: Install all dependencies (R and system)
-      # This step is now cleaner and combines your old Step 3 and 4
+      # Step 3: Install system dependencies (Linux only)
+      - name: Install system dependencies
+        # This 'if' condition ensures the step only runs on the Ubuntu runner
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y liblbfgs-dev
+
+      # Step 4: Install the R package dependencies
       - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          # Install the system library needed by the 'lbfgs' R package
-          system-packages: |
-            liblbfgs-dev
-          # Install rcmdcheck
           extra-packages: |
             any::rcmdcheck
-          # Increment cache-version to force a fresh install
-          cache-version: 7 
+          cache-version: 6
 
-      # Step 4: Install LaTeX for PDF documentation
+      # Step 5: Install LaTeX for PDF documentation
       - name: Install LaTeX
         uses: r-lib/actions/setup-tinytex@v2
 
-      # Step 5: Run the R CMD Check
+      # Step 6: Run the R CMD Check
       - name: Check package
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
