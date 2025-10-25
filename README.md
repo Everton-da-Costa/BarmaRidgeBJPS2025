@@ -2,6 +2,7 @@
 
 [![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![R-CMD-check](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R.yml/badge.svg)](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R.yml)
 
 This repository contains the R package and associated data for the scientific article:
 
@@ -63,6 +64,10 @@ The repository is structured as a standard R package for clarity and reproducibi
 ```
 
 ---
+
+## Code of Conduct
+
+Please note that the BarmaRidgeBJPS2025 project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
 
 ## 🛠️ Installation
 This research compendium can be installed as an R package directly from GitHub. This is the recommended method as it handles all dependencies automatically.
