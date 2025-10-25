@@ -106,33 +106,30 @@ The scripts were last successfully tested on:
 
 ## 🚀 Getting Started & Example (Vignette)
 
-The best way to understand and replicate the analysis is through the package vignette, which provides a detailed, narrated code example.
+The best way to understand and replicate the analysis is through the
+package vignette, which provides a detailed, narrated code example.
 
-**1. List Available Vignettes**
-After installation, you can see all available vignettes with the following command:
+### 1. View Pre-Rendered Reports (Recommended)
 
+This is the fastest way to see the full analysis. You can view the pre-rendered HTML reports directly in your browser without installing the package.
+
+* **Empirical Application: [View `relative_humidity_brasilia` Report (HTML)](https://htmlpreview.github.io/?https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/blob/main/reports/relative_humidity_brasilia.html)**
+    > An end-to-end project demonstrating how to solve numerical instability when modeling the relative humidity in Brasília. It covers the comparison between CMLE, PCMLE, and bootstrap-based estimates.
+
+* **Numerical Demonstration: [View `simulated_ts_example` Report (HTML)](https://htmlpreview.github.io/?https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/blob/main/reports/simulated_ts_example.html)**
+    > Reproduces the simulation study from the paper, showing how standard CMLE fails and PCMLE succeeds in a controlled environment where the true parameters are known.
+
+### 2. Run Locally (After Installation)
+
+After installation, you can also see all available vignettes and run them interactively from your R console:
+    
 ```R
-# Lists all tutorials for this package
+# 1. Lists all tutorials for this package
 browseVignettes("BarmaRidgeBJPS2025")
-```
 
-**2. Open the Vignette**
-The main vignette showcases the practical application of the package's methods.
-
-* `simulated_ts_example`: (Numerical Demonstration) Reproduces the simulation study from the paper, showing how standard CMLE fails and PCMLE succeeds in a controlled environment where the true parameters are known.
-
-* `relative_humidity_brasilia`: (Empirical Application) An end-to-end project demonstrating how to solve numerical instability when modeling the relative humidity in Brasília. It covers the comparison between CMLE, PCMLE, and bootstrap-based estimates.
-
-You can open the vignette directly from your R console to view the full analysis and code.
-
-```R
-# Open the numerical example with simulated data
-vignette("simulated_ts_example", package = "BarmaRidgeBJPS2025")
-```
-
-```R
-# Open the empirical application with Brasília humidity data
+# 2. Open a specific vignette
 vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
+vignette("simulated_ts_example", package = "BarmaRidgeBJPS2025")
 ```
 
 📄 Accessing Archival Reports
