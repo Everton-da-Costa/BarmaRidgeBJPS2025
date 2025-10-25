@@ -12,9 +12,9 @@
 
 <meta name="author" content="Everton da Costa" />
 
-<meta name="date" content="2025-10-07" />
+<meta name="date" content="2025-10-25" />
 
-<title>A Simulated Data Example: Addressing Numerical Instability in \beta\text{ARMA} Models</title>
+<title>simulated_ts_example.knit</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -339,12 +339,6 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">A Simulated Data Example: Addressing
-Numerical Instability in <span class="math inline">\(\beta\text{ARMA}\)</span> Models</h1>
-<h3 class="subtitle">Reproducing the CMLE and PCMLE from Cribari-Neto,
-Costa, &amp; Fonseca (2025)</h3>
-<h4 class="author">Everton da Costa</h4>
-<h4 class="date">2025-10-07</h4>
 
 
 
@@ -1424,7 +1418,7 @@ future.</p>
 <pre><code>#&gt; =================================================================
 #&gt; Session Information
 #&gt; =================================================================
-#&gt; This report was generated at: outubro 07, 2025 at 04:54
+#&gt; This report was generated at: outubro 25, 2025 at 04:28
 #&gt; R version 4.4.2 (2024-10-31)
 #&gt; Platform: x86_64-pc-linux-gnu
 #&gt; Running under: Ubuntu 24.04.3 LTS
@@ -1443,30 +1437,32 @@ future.</p>
 #&gt; tzcode source: system (glibc)
 #&gt; 
 #&gt; attached base packages:
-#&gt; [1] parallel  stats     graphics  grDevices utils     datasets  methods   base     
+#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     
 #&gt; 
 #&gt; other attached packages:
-#&gt;  [1] doRNG_1.8.6.2            rngtools_1.5.2           doMC_1.3.8              
-#&gt;  [4] iterators_1.0.14         foreach_1.5.2            gridExtra_2.3           
-#&gt;  [7] zoo_1.8-14               dplyr_1.1.4              ggplot2_4.0.0           
-#&gt; [10] forecast_8.24.0          BarmaRidgeBJPS2025_1.0.0
+#&gt; [1] dplyr_1.1.4              ggplot2_4.0.0            forecast_8.24.0          BarmaRidgeBJPS2025_1.0.0
 #&gt; 
 #&gt; loaded via a namespace (and not attached):
-#&gt;  [1] sass_0.4.10        generics_0.1.4     lattice_0.22-5     digest_0.6.37     
-#&gt;  [5] magrittr_2.0.4     evaluate_1.0.5     grid_4.4.2         RColorBrewer_1.1-3
-#&gt;  [9] fastmap_1.2.0      jsonlite_2.0.0     nnet_7.3-19        tinytex_0.57      
-#&gt; [13] scales_1.4.0       jquerylib_0.1.4    codetools_0.2-20   Rdpack_2.6.4      
-#&gt; [17] cli_3.6.5          rlang_1.1.6        rbibutils_2.3      lbfgs_1.2.1.2     
-#&gt; [21] cachem_1.1.0       yaml_2.3.10        withr_3.0.2        tools_4.4.2       
-#&gt; [25] colorspace_2.1-2   curl_7.0.0         vctrs_0.6.5        R6_2.6.1          
-#&gt; [29] lifecycle_1.0.4    tseries_0.10-58    pkgconfig_2.0.3    urca_1.3-4        
-#&gt; [33] bslib_0.9.0        pillar_1.11.1      gtable_0.3.6       moments_0.14.1    
-#&gt; [37] glue_1.8.0         quantmod_0.4.28    Rcpp_1.1.0         xfun_0.53         
-#&gt; [41] tibble_3.3.0       lmtest_0.9-40      tidyselect_1.2.1   rstudioapi_0.17.1 
-#&gt; [45] knitr_1.50         farver_2.1.2       htmltools_0.5.8.1  nlme_3.1-165      
-#&gt; [49] rmarkdown_2.30     labeling_0.4.3     xts_0.14.1         timeDate_4041.110 
-#&gt; [53] fracdiff_1.5-3     compiler_4.4.2     S7_0.2.0           quadprog_1.5-8    
-#&gt; [57] TTR_0.24.4</code></pre>
+#&gt;  [1] tidyselect_1.2.1   timeDate_4041.110  farver_2.1.2       S7_0.2.0           fastmap_1.2.0     
+#&gt;  [6] xopen_1.0.1        promises_1.3.0     digest_0.6.37      mime_0.13          lifecycle_1.0.4   
+#&gt; [11] ellipsis_0.3.2     processx_3.8.4     magrittr_2.0.4     compiler_4.4.2     rlang_1.1.6       
+#&gt; [16] doMC_1.3.8         sass_0.4.10        rngtools_1.5.2     tools_4.4.2        yaml_2.3.10       
+#&gt; [21] knitr_1.50         labeling_0.4.3     prettyunits_1.2.0  doRNG_1.8.6.2      htmlwidgets_1.6.4 
+#&gt; [26] pkgbuild_1.4.5     curl_7.0.0         TTR_0.24.4         xml2_1.3.6         RColorBrewer_1.1-3
+#&gt; [31] pkgload_1.4.0      miniUI_0.1.1.1     withr_3.0.2        purrr_1.0.2        desc_1.4.3        
+#&gt; [36] nnet_7.3-19        grid_4.4.2         roxygen2_7.3.2     urlchecker_1.0.1   xts_0.14.1        
+#&gt; [41] profvis_0.4.0      xtable_1.8-4       colorspace_2.1-2   scales_1.4.0       iterators_1.0.14  
+#&gt; [46] cli_3.6.5          rmarkdown_2.30     generics_0.1.4     remotes_2.5.0      rstudioapi_0.17.1 
+#&gt; [51] sessioninfo_1.2.3  cachem_1.1.0       stringr_1.5.1      parallel_4.4.2     urca_1.3-4        
+#&gt; [56] vctrs_0.6.5        devtools_2.4.5     jsonlite_2.0.0     callr_3.7.6        tseries_0.10-58   
+#&gt; [61] rcmdcheck_1.4.0    testthat_3.2.1.1   foreach_1.5.2      jquerylib_0.1.4    lbfgs_1.2.1.2     
+#&gt; [66] quantmod_0.4.28    glue_1.8.0         codetools_0.2-20   ps_1.8.1           stringi_1.8.4     
+#&gt; [71] gtable_0.3.6       later_1.3.2        quadprog_1.5-8     lmtest_0.9-40      tibble_3.3.0      
+#&gt; [76] pillar_1.11.1      htmltools_0.5.8.1  brio_1.1.5         R6_2.6.1           Rdpack_2.6.4      
+#&gt; [81] rprojroot_2.1.1    evaluate_1.0.5     shiny_1.9.1        lattice_0.22-5     rbibutils_2.3     
+#&gt; [86] memoise_2.0.1      fracdiff_1.5-3     httpuv_1.6.15      bslib_0.9.0        Rcpp_1.1.0        
+#&gt; [91] nlme_3.1-165       gridExtra_2.3      xfun_0.53          fs_1.6.6           zoo_1.8-14        
+#&gt; [96] usethis_3.1.0      pkgconfig_2.0.3</code></pre>
 </div>
 </div>
 

@@ -1,6 +1,4 @@
 ---
-title: "A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"
-subtitle: "Reproducing the CMLE and PCMLE from Cribari-Neto, Costa, & Fonseca (2025)"
 author: "Everton da Costa"
 date: "`r Sys.Date()`"
 output:
