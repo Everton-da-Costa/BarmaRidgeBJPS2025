@@ -1,0 +1,494 @@
+---
+title: "Numerical stability enhancements in beta autoregressive moving average model estimation"
+subtitle: "Numerical stability enhancements for dynamic beta models"
+author: "Everton da Costa"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    fig_caption: true
+# bibliography: ../inst/REFERENCES.bib
+vignette: >
+  %\VignetteIndexEntry{Solving Model Instability: A Case Study in Time Series Estimation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 3.5,
+  fig.align = "center",
+  warning = FALSE,
+  message = FALSE
+)
+
+library(BarmaRidgeBJPS2025)
+library(forecast)   # time series
+library(ggplot2)    # plotting
+library(zoo)        # yearmon handling
+library(dplyr)      # data manipulation
+library(gridExtra)  # grid.arrange for plots
+```
+
+
+# Solving Model Instability: A Case Study in Time Series Estimation
+
+## Executive Summary
+
+This project addresses a critical challenge in statistical modeling: numerical instability. While fitting an advanced time series model ($\beta$ARMA) for environmental forecasting, standard estimation methods frequently failed, producing nonsensical estimates or failing to converge entirely.
+
+We implemented a ridge-penalized estimation method (PMLE) that acts as a "safety net" for the optimization algorithm. This approach enhances the curvature of the log-likelihood function, guaranteeing stable and plausible model estimates where traditional Maximum Likelihood Estimation (MLE) fails. This work, part of a reproducible R package, demonstrates a practical solution to a common modeling pitfall, ensuring the delivery of reliable, and production-ready data science solutions.
+
+## Core Competencies Demonstrated
+
+ * Advanced Statistical Modeling: Application of Beta Autoregressive Moving Average ($\beta$ARMA) models for bounded time series data (e.g., proportions, percentages).
+
+ * Machine Learning: Implementation of penalized regression (Ridge) within a maximum likelihood framework to solve optimization problems.
+
+ * Model Validation: Diagnosing and solving model convergence failures and identifying implausible parameter estimates that indicate model instability.
+
+ * Scientific Programming: Translating a complex statistical technique from academic research into a reusable, documented function within an R package.
+
+ * Reproducible Research: Creating a clear, self-contained vignette that documents the problem, solution, and results, allowing for easy verification.
+
+**Key Reference:** 
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model estimation.
+
+## Introduction
+
+### The Challenge: The Hidden Risk of Model Instability
+
+In data science, we rely on algorithms to estimate model parameters. However, these optimization algorithms can sometimes fail, especially with complex models or data. This leads to two major risks:
+
+1. **Convergence Failure**: The model-fitting process completely fails, halting the project.
+
+2. **Implausible Estimates**: The algorithm converges but yields nonsensical parameter values (e.g., values outside their valid theoretical range). This "silent failure" is more dangerous, as it can lead to incorrect conclusions and flawed decisions.
+
+This project tackles these issues in the context of modeling relative humidity in Brasília, Brazil, using a $\beta\text{ARMA}$ model.
+
+### The Solution: Estimation with Ridge Penalization
+
+The $\beta$ARMA model is ideal for time series data bounded between 0 and 1, like relative humidity. However, its standard estimation method, Conditional Maximum Likelihood (MLE), is prone to the numerical instability described above.
+
+The solution is to use a Penalized Maximum Likelihood Estimator (PMLE). This involves adding a small, simple penalty term (a ridge penalty) to the function being optimized. This penalty term makes the optimization landscape smoother and better-behaved, guiding the algorithm to a stable and sensible solution without compromising the model's integrity.
+
+### Practical Impact
+
+This reliable estimation method provides significant value:
+
+ * Reliability: Ensures that automated modeling pipelines don't fail due to unexpected numerical issues.
+
+ * Trust: Guarantees that the resulting model parameters are plausible and trustworthy.
+
+ * Efficiency: Avoids wasted time and resources spent debugging unstable model fits.
+ 
+
+## Data Analysis and Key Insights
+
+```{r, config_data_visualization, include=FALSE}
+# Series size and end time
+sample_size <- length(brasilia_ts)
+end_time_series <- time(brasilia_ts)[sample_size] + 1
+
+# Size font of the plot
+ggplot_size_font <- 9
+
+# ggplot theme
+ggplot_theme <- theme(
+  legend.position = "bottom",
+  title = element_text(size = ggplot_size_font),
+  axis.text = element_text(size = ggplot_size_font),
+  axis.title = element_text(size = ggplot_size_font),
+  legend.text = element_text(size = ggplot_size_font),
+  legend.title = element_text(size = ggplot_size_font)
+  )
+
+# ggplot theme forecast plot
+ggplot_theme_forecast <- theme(
+  legend.position = "right",
+  title = element_text(size = ggplot_size_font),
+  axis.text = element_text(size = ggplot_size_font),
+  axis.title = element_text(size = ggplot_size_font),
+  legend.text = element_text(size = ggplot_size_font),
+  legend.title = element_text(size = ggplot_size_font)
+)
+
+# y-axis scale
+ggplot_scale_y <-
+  scale_y_continuous(
+    breaks = seq(0.0, 1.00, 0.10)
+    # limits = c(0.1, 1.0)
+  )
+
+# x-axis scale
+ggplot_scale_x <- scale_x_continuous(
+  breaks = seq(1999, end_time_series, 2),
+  limits = c(1999, end_time_series)
+)
+```
+
+### Dataset Overview
+
+The dataset consists of 306 monthly observations of the average relative humidity in Brasília, Brazil, from January 1999 to June 2024. The data is sourced from NASA's POWER project. Relative humidity is a proportion, naturally bounded between 0 and 1, making it a perfect candidate for beta regression-based models.
+
+```{r, ggplot_brasilia, include=FALSE}
+# -------------------------------------------------------------------------- #
+# Time series plot
+# -------------------------------------------------------------------------- #
+ggplot_brasilia <- ggplot(brasilia_df, aes(time, y)) +
+  geom_point(size = 0.5) +
+  geom_line(aes(group = 1)) +
+  ggplot_scale_x +
+  ggplot_scale_y +
+  ggplot_theme +
+  guides(colour = guide_legend(title = "Temporary regimes"))
+
+# -------------------------------------------------------------------------- #
+# Autocorrelation function (ACF) plot
+# -------------------------------------------------------------------------- #
+ggacf_plot <- ggAcf(brasilia_ts) +
+  ggtitle(" ") +
+  xlab("Lag") +
+  ylab("ACF")
+
+# -------------------------------------------------------------------------- #
+# Partial autocorrelation function (PACF) plot
+# -------------------------------------------------------------------------- #
+ggpacf_plot <- ggPacf(brasilia_ts) +
+  ggtitle(" ") +
+  xlab("Lag") +
+  ylab("PACF")
+```
+
+```{r, print_ggplot_brasilia, message=FALSE, echo=FALSE, fig.height=5, fig.cap="Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."}
+# -------------------------------------------------------------------------- #
+# Grid all plots
+# -------------------------------------------------------------------------- #
+grid.arrange(
+  ggplot_brasilia,
+  ggacf_plot,
+  ggpacf_plot,
+  layout_matrix = rbind(c(1, 1), c(2, 3))
+)
+```
+
+### Uncovering Key Patterns: EDA Insights
+
+The initial analysis reveals strong, predictable patterns that are crucial for accurate modeling. The time series plot shows clear seasonal fluctuations, which are further confirmed by the slow, sinusoidal decay in the autocorrelation function.
+
+```{r, descriptive, include=FALSE}
+# -------------------------------------------------------------------------- #
+# Descriptive statistics: Useful volume of the brasilia
+# -------------------------------------------------------------------------- #
+descriptive_df <- data.frame(
+  min             = min(brasilia_ts),
+  max             = max(brasilia_ts),
+  median          = median(brasilia_ts),
+  mean            = mean(brasilia_ts),
+  sd              = sd(brasilia_ts),
+  skewness        = moments::skewness(brasilia_ts),
+  excess_kurtosis = moments::kurtosis(brasilia_ts)
+)
+
+# Round to two decimals
+descriptive_df <- round(descriptive_df, 2)
+```
+
+```{r, print_descriptive, echo=FALSE}
+knitr::kable(
+  descriptive_df,
+  caption = 
+    "Descriptive statistics of the brasilia relative humidity in Brasília."
+)
+```
+
+### Key Findings from the Data: 
+
+ * **Range**: Humidity levels vary significantly, from a low of 33% to a high of 89%.
+
+ * **Central Tendency**: The mean (68%) and median (74%) indicate that the distribution is left-skewed, with a longer tail towards lower humidity values.
+
+ * **Volatility**: A standard deviation of 16% highlights the substantial seasonal variation.
+
+### Seasonal Pattern Analysis
+
+The seasonal plots below break down the annual humidity cycle, providing actionable insights into Brasília's climate patterns.
+
+```{r, ggmonthplot, include=FALSE}
+# Monthly seasonality plot
+ggmonthplot_brasilia_ts <- ggmonthplot(brasilia_ts) +
+  labs(title = " ", x = "Month", y = " ") + 
+  ggplot_scale_y +
+  ggplot_theme
+```
+
+```{r, print_ggmonthplot, echo=FALSE, fig.cap = "Monthly plot illustrating the seasonal pattern of the Relative humidity in Brasília across different years."}
+print(ggmonthplot_brasilia_ts)
+```
+
+```{r, ggseasonplot, include=FALSE}
+# Seasonality plot by year
+ggseasonplot_brasilia_ts <- ggseasonplot(brasilia_ts) +
+  labs(title = " ", x = "Month", y = " ") + 
+  ggplot_scale_y +
+  ggplot_theme + 
+  theme(legend.position = "right")
+```
+
+```{r, print_ggseasonplot, echo=FALSE, fig.cap = "Seasonal plot comparing the Relative humidity in Brasília patterns across different years, emphasizing variations during and outside the drought period."}
+print(ggseasonplot_brasilia_ts)
+```
+
+### Climatic Insights:
+
+* **Wet Season**: Humidity peaks between December and February, corresponding to the summer rainy season.
+
+* **Dry Season**: Humidity drops sharply, reaching its lowest point between August and September. This is the period of greatest concern for wildfires and respiratory health issues. 
+
+* **Transitions**: The shoulder months (April-May and October-November) show rapid changes, highlighting the transition between wet and dry seasons.
+
+This strong and consistent seasonality confirms that harmonic regressors (
+$s_t=sin(2\pi t/12)$ and $c_t=cos(2\pi t/12)$) are essential features for accurately modeling this time series. 
+
+## A Case of Instability: The Sub-sample Analysis
+
+To demonstrate the numerical instability of the MLE estimates, we focus our analysis on a specific subsample of the data. This slice, running from April 2006 to September 2018, was identified in the original research as being particularly problematic for the standard estimation.
+
+The plot below shows the full time series, with the problematic subsample highlighted between the dashed red lines. This visualization helps contextualize the portion of the data that causes estimation issues.
+
+```{r, sample, include=FALSE}
+
+sample_size <- 150 # The length of the training sample
+n_test <- 6        # The number of observations for the final test set
+
+# The lag in months (how far back to go) 
+# In this example specifies the data from April 2006 to September 2018.
+lag_months <- 69   
+
+# Define n_obs before using it.
+n_obs <- length(brasilia_ts)
+
+# Train-test split index
+split_idx <- n_obs - n_test
+
+# The end of the primary training period (our anchor point)
+end_train <- time(brasilia_ts)[split_idx]
+
+# The end of our lagged sample window
+end_train_lag <- end_train - (lag_months / 12)
+
+# The start of our lagged sample window
+start_train_lag <- end_train_lag - deltat(brasilia_ts) * (sample_size - 1)
+
+# Sample
+# ----------------------------------------------------------------------- #
+y_sample_ts <- window(brasilia_ts,
+                      start = start_train_lag,
+                      end = end_train_lag)
+```
+
+```{r, ggplot_brasilia2, include=FALSE}
+len_y_sample <- length(y_sample_ts)
+
+start_subsample_time <- time(y_sample_ts)[1]
+end_subsample_time <- time(y_sample_ts)[len_y_sample]
+
+# -------------------------------------------------------------------------- #
+# Time series plot
+# -------------------------------------------------------------------------- #
+ggplot_brasilia <- ggplot(brasilia_df, aes(time, y)) +
+  geom_point(size = 0.5) +
+  geom_line(aes(group = 1)) +
+  ggplot_scale_x +
+  ggplot_scale_y +
+  ggplot_theme +
+  guides(colour = guide_legend(title = "Relative humidity in Brasília")) +
+
+  # Vertical line for the start of the sub-sample
+  geom_vline(
+    xintercept = start_subsample_time,
+    linetype = "dashed",
+    size = 0.5,
+    color = "red"
+  ) +
+
+  # Vertical line for the end of the sub-sample
+  geom_vline(
+    xintercept = end_subsample_time,
+    linetype = "dashed",
+    size = 0.5,
+    color = "red"
+  )
+
+# -------------------------------------------------------------------------- #
+# Autocorrelation function (ACF) plot
+# -------------------------------------------------------------------------- #
+ggacf_plot <- ggAcf(brasilia_ts) +
+  ggtitle(" ") +
+  xlab("Lag") +
+  ylab("ACF")
+
+# -------------------------------------------------------------------------- #
+# Partial autocorrelation function (PACF) plot
+# -------------------------------------------------------------------------- #
+ggpacf_plot <- ggPacf(brasilia_ts) +
+  ggtitle(" ") +
+  xlab("Lag") +
+  ylab("PACF")
+```
+
+```{r, print_ggplot_brasilia_subsample, message=FALSE, echo=FALSE, fig.height=5, fig.cap=" Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."}
+# -------------------------------------------------------------------------- #
+# Grid all plots
+# -------------------------------------------------------------------------- #
+grid.arrange(
+  ggplot_brasilia,
+  ggacf_plot,
+  ggpacf_plot,
+  layout_matrix = rbind(c(1, 1), c(2, 3))
+)
+```
+
+
+### Feature Engineering for Seasonality
+
+Before fitting the models, we create the necessary regressors to capture the strong seasonal patterns identified in the exploratory data analysis.
+
+* Harmonic Regressors: A pair of sine (`hs`) and cosine (`hc`) waves with a 12-month frequency. These are highly effective for modeling smooth, repeating annual cycles like those seen in humidity data.
+
+```{r, regressor, include=FALSE}
+# Get Time Series Frequency
+freq <- frequency(y_sample_ts)
+
+# Create Trend Regressors
+trend_index <- seq_along(y_sample_ts)
+trend_index_hat <- (max(trend_index) + 1):(max(trend_index) + n_test)
+
+# Create Harmonic Regressors 
+hs <- sin(2 * pi * trend_index / freq)
+hc <- cos(2 * pi * trend_index / freq)
+hs_hat <- sin(2 * pi * trend_index_hat / freq)
+hc_hat <- cos(2 * pi * trend_index_hat / freq)
+
+
+# Final
+regressors_list <- list(
+    trend_index = trend_index,
+    trend_index_hat = trend_index_hat,
+    hs = hs,
+    hc = hc,
+    hs_hat = hs_hat,
+    hc_hat = hc_hat
+)
+
+```
+
+### Model Fitting: MLE vs. PMLE
+
+Now we fit the $\beta\text{ARMA(1,4)}$ model to the subsample using both the standard (MLE) and the penalized (PMLE) estimates. The goal is to directly compare the resulting parameter estimates and demonstrate the stabilizing effect of the ridge penalty.
+
+### Model Configuration
+
+We define the model structure and the small penalty term required for the PMLE approach. The penalty is intentionally small, designed only to provide stability without significantly biasing the results.
+
+```{r, config_estimates}
+# \betaARMA(1,4) model
+ar_vec <- 1
+ma_vec <- 1:4
+
+# Penalization
+a_max <- max(ar_vec, ma_vec)
+penalty <- 1 / (len_y_sample - a_max)^(0.9)
+```
+
+### Attempt 1: Standard Maximum Likelihood Estimation (MLE)
+
+First, we fit the model using the standard MLE method by setting `penalty = 0`.
+
+```{r, estimates_mle}
+# Fit the unpenalized BARMA model (standard MLE)
+fit_default <- barma(
+  y = y_sample_ts,
+  ar = ar_vec,
+  ma = ma_vec,
+  penalty = 0,
+  h1 = n_test,
+  X = cbind(
+    hs = regressors_list$hs,
+    hc = regressors_list$hc
+  ),
+  X_hat = cbind(
+    hs_hat = regressors_list$hs_hat,
+    hc_hat = regressors_list$hc_hat
+  )
+)
+
+```
+
+### Attempt 2: Penalized Maximum Likelihood Estimation (PMLE)
+
+Next, we fit the exact same model, but this time we include the small ridge penalty to stabilize the estimation process.
+
+```{r, estimates_pmle}
+# Fit the penalized BARMA model (PMLE)
+fit_ridge <- barma(
+  y = y_sample_ts,
+  ar = ar_vec,
+  ma = ma_vec,
+  penalty = penalty,
+  h1 = n_test,
+  X = cbind(
+    hs = regressors_list$hs,
+    hc = regressors_list$hc
+  ),
+  X_hat = cbind(
+    hs_hat = regressors_list$hs_hat,
+    hc_hat = regressors_list$hc_hat
+  )
+)
+```
+
+### Results: A Clear Case for Penalization
+
+The table below directly compares the parameter estimates from both methods. The impact of the ridge penalty is immediately obvious.
+
+```{r, print_estimates}
+# Data frame with MLE and PMLE estimates
+estimates <- cbind(
+  MLE = as.numeric(fit_default$coef),
+  PMLE = as.numeric(fit_ridge$coef)
+)
+
+estimates_df <- data.frame(estimates)
+
+# Row names of the LaTeX table
+ar_names <- paste0("$\\varphi_", ar_vec, "$")
+ma_names <- paste0("$\\theta_", ma_vec, "$")
+barma_names <- c("$\\alpha$", ar_names, ma_names, "$\\phi$")
+regressors_names <- c("$\\beta_1$ (sin)", "$\\beta_2$ (cos)")
+
+rownames(estimates_df) <- c(barma_names, regressors_names)
+estimates_df <- round(estimates_df, 4)
+
+knitr::kable(
+  estimates_df,
+  caption = "Parameter estimates for the $\\beta\\text{ARMA(1,4)}$ model;
+  relative humidity in Brasília, data from April 2006 to September 2018."
+)
+
+```
+
+
+**Key Observation**: The standard estimation method (MLE) shows clear signs of instability. The autoregressive parameter $(\varphi_1)$ flips its sign entirely, from **-0.5736** (MLE) to a plausible **0.3452** (PMLE). Additionally, the first moving average parameter $(\theta_1)$ is dramatically inflated under MLE $(1.2184)$ compared to the moderate PMLE estimate $(0.2853)$. These wild fluctuations are classic symptoms of an unreliable model fit. In stark contrast, the penalized (PMLE) estimates are stable and well-behaved, proving the method's success in delivering trustworthy results.
+
+## Conclusion
+This analysis is more than an academic exercise; it is a practical demonstration of how to diagnose and solve a critical problem in statistical modeling. When standard methods produce questionable or unstable results, it is crucial to have reliable alternatives.
+
+The penalized estimation method (PMLE) provides a reliable "safety net" that guarantees stable and plausible model estimates, even in challenging scenarios where traditional MLE falters. This commitment to reliable modeling is essential for building data science solutions that perform predictably and can be trusted in a production environment.
+
