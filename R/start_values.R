@@ -60,7 +60,7 @@
 #' used by an optimization routine. Returns `NULL` if the model
 #' specification is not recognized.
 #'
-#' @keywords external
+#' @keywords internal
 start_values <- function(y, link,
                          ar = NA, ma = NA, X = NA) {
   # from:

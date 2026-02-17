@@ -41,7 +41,8 @@ Imports:
     doRNG,
     stats,
     dplyr,
-    gridExtra
+    gridExtra,
+    scales
 Suggests:
     xtable,
     forecast,
@@ -49,8 +50,7 @@ Suggests:
     knitr,
     moments,
     rmarkdown,
-    tseries,
-    lbfgs
+    tseries
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)
