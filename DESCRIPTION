@@ -3,7 +3,7 @@ Title: Enhancements for Numerical Stability in Beta ARMA Models
 Version: 1.0.0
 Authors@R: c(
   person("Everton", "da Costa",
-    email = "everton.ecosta@ufpe.br",
+    email = "everto.cost@gmail.com",
     role = c("aut", "cre"),
     comment = c(ORCID = "0000-0001-7580-2639")
   ),
