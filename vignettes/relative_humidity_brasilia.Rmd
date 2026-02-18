@@ -1,6 +1,5 @@
 ---
 title: "Numerical stability enhancements in beta autoregressive moving average model estimation"
-subtitle: "Numerical stability enhancements for dynamic beta models"
 author: "Everton da Costa"
 date: "`r Sys.Date()`"
 output:
@@ -11,7 +10,7 @@ output:
     fig_caption: true
 # bibliography: ../inst/REFERENCES.bib
 vignette: >
-  %\VignetteIndexEntry{Solving Model Instability: A Case Study in Time Series Estimation}
+  %\VignetteIndexEntry{Numerical stability enhancements in beta autoregressive moving average model estimation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
