@@ -2,6 +2,7 @@
 
 [![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![R-CMD-check](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml)
 
 This repository contains the R package and associated data for the scientific article:
 
@@ -13,6 +14,8 @@ Submitted to the *Brazilian Journal of Probability and Statistics*.
 ## 📚 Table of Contents
 
 - [🎯 Project Motivation](#-project-motivation)
+- [🏆 Publication & Journal Quality](#-publication--journal-quality)
+- [🛠️ Key Skills Demonstrated](#️-key-skills-demonstrated)
 - [✨ Key Features](#-key-features)
 - [📂 Repository Structure](#-repository-structure)
 - [🛠️ Installation](#️-installation)
@@ -34,9 +37,38 @@ The effectiveness of these methods is demonstrated through a detailed case study
 
 ---
 
+## 🏆 Publication & Journal Quality
+
+This research has been submitted to the **Brazilian Journal of Probability and Statistics**, the official publication of the **Brazilian Statistical Association (ABE)** and supported by the **Institute of Mathematical Statistics (IMS)**.
+
+The journal is a respected venue for methodological advances in statistics. Its key bibliometric indicators (2023 data) include:
+
+* **SJR (SCImago Journal Rank):** 0.251
+* **H-Index:** 23
+* **CiteScore:** 1.2
+* **Impact Factor:** 0.55
+
+<a href="https://www.scimagojr.com/journalsearch.php?q=19900192736&amp;tip=sid&amp;exact=no" title="SCImago Journal &amp; Country Rank"><img border="0" src="https://www.scimagojr.com/journal_img.php?id=19900192736" alt="SCImago Journal &amp; Country Rank" /></a>
+
+*(Note: Metrics reflect the journal's standing in the field of Statistics and Probability)*
+
+---
+
+## 🛠️ Key Skills Demonstrated
+
+This project showcases a range of advanced data science and statistical engineering skills:
+
+* **Statistical Algorithm Design:** Implementing a **Ridge Penalization** scheme from scratch to solve non-convergence in Maximum Likelihood Estimation.
+* **R Package Development:** Creating a structured, documented, and installable R package.
+* **High-Performance Computing:** Utilizing the `doMC` package for parallel processing in simulation studies (Linux environments).
+* **Reproducible Research:** Authoring detailed R Markdown vignettes that serve as reproducible case studies.
+* **Numerical Optimization:** Working with advanced optimization routines (`lbfgs`) to handle complex likelihood surfaces.
+
+---
+
 ## ✨ Key Features
 
-This package provides a robust toolkit for stable BARMA model estimation.
+This package provides an toolkit for stable BARMA model estimation.
 
 * **Ridge-Penalized BARMA Model:** The core `barma()` function is enhanced with a `penalty` argument to apply the ridge penalization scheme.
 * **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
@@ -54,7 +86,9 @@ The repository is structured as a standard R package for clarity and reproducibi
 ├── data/               # Processed data included in the package (.rda).
 ├── data-raw/           # Raw data and scripts used to process it.
 ├── vignettes/          # Detailed tutorial and case study (.Rmd).
+├── reports/            # Pre-rendered HTML reports.
 ├── man/                # R package documentation files for functions.
+├── CODE_OF_CONDUCT.md  # Contributor Code of Conduct.
 ├── DESCRIPTION         # Package metadata and dependencies.
 ├── NAMESPACE           # Manages the package's namespace.
 ├── LICENSE             # MIT License file.
@@ -85,7 +119,7 @@ install.packages("path/to/file/BarmaRidgeBJPS2025_1.0.0.tar.gz",
 ```
 *(Note: Change the version number in the filename if it differs from `1.0.0`)*
 
-**⚠️ Note on Installation Time: **
+**⚠️ Note on Installation Time:**
 The installation process builds the package vignettes, which involve running **bootstrap procedures** to reproduce the examples from the article. 
 **This process may take several minutes.**
 Please note that while the original simulation study utilized high-performance parallel computing (8+ cores), the package vignettes are restricted to run on **1 core** to ensure compatibility across all systems, even though the code supports parallelization.
@@ -127,13 +161,6 @@ vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
 
 ---
 
-## 🔬 Future Work
-While this package provides a complete solution for ridge-penalized estimation, future versions could be extended to include:
-
-* The complementary bootstrap-based estimation strategy discussed in the paper.
-
----
-
 ## 🎓 Citation
 
 If you use this code or data in your research, please cite the original article:
@@ -157,4 +184,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 For questions, suggestions, or issues related to the code, please contact:
 
 Everton da Costa  
-📧 everto.cost@gmail.com 
+📧 everto.cost@gmail.com
