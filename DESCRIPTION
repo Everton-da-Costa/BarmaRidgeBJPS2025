@@ -42,7 +42,8 @@ Imports:
     stats,
     dplyr,
     gridExtra,
-    scales
+    scales,
+    lbfgs
 Suggests:
     xtable,
     forecast,
