@@ -1,7 +1,7 @@
 #' @keywords internal
 "_PACKAGE"
 
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% 
 #' @importFrom ggplot2 ggplot
 #' @importFrom gridExtra grid.arrange
 #' @importFrom Rdpack reprompt

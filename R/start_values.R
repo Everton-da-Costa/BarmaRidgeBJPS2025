@@ -1,4 +1,4 @@
-#' Generate Initial Values for βARMA Model Estimation
+#' Generate Initial Values for βARMA Model Estimation 
 #'
 #' @description
 #' This function calculates reasonable starting values for the parameters of
