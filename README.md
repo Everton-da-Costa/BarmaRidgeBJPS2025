@@ -37,16 +37,14 @@ This project implements a **ridge penalization** scheme to enhance the log-likel
 
 ## 🏆 Publication & Journal Quality
 
-This research is published in the **Brazilian Journal of Probability and Statistics (BJPS)**, the official journal of the Brazilian Statistical Association (ABE). Received May 2025; accepted December 2025.
+This research was published in the **Brazilian Journal of Probability and Statistics (BJPS)**, the official journal of the Brazilian Statistical Association (ABE). The journal's standing speaks to the rigor of the underlying research, as reflected in its key metrics:
 
-* **DOI:** [10.1214/25-BJPS645](https://doi.org/10.1214/25-BJPS645)
-* **SJR (SCImago Journal Rank):** 0.251
-* **H-Index:** 23
-* **CiteScore:** 1.2
 * **Impact Factor:** 0.55
+* **CiteScore:** 1.2
+* **SJR:** 0.251
+* **H-Index:** 23
 
-
-<a href="https://www.scimagojr.com/journalsearch.php?q=19900192736&amp;tip=sid&amp;exact=no" title="SCImago Journal &amp; Country Rank"><img border="0" src="https://www.scimagojr.com/journal_img.php?id=19900192736" alt="SCImago Journal &amp; Country Rank" /></a>
+[![SCImago Journal & Country Rank](https://www.scimagojr.com/journal_img.php?id=19900192736)](https://www.scimagojr.com/journalsearch.php?q=19900192736&tip=sid&exact=no)
 
 *(Note: Metrics reflect the journal's standing in the field of Statistics and Probability)*
 
@@ -113,13 +111,11 @@ install.packages("path/to/file/BarmaRidgeBJPS2025_1.0.0.tar.gz",
                  repos = NULL, 
                  type = "source")
 ```
-*(Note: Change the version number in the filename if it differs from `1.0.0`)*
 
 **⚠️ Note on Installation Time:**
 The installation process builds the package vignettes, which involve running **bootstrap procedures** to reproduce the examples from the article. 
 **This process may take several minutes.**
 Please note that while the original simulation study utilized high-performance parallel computing (8+ cores), the package vignettes are restricted to run on **1 core** to ensure compatibility across all systems, even though the code supports parallelization.
-
 
 ---
 
