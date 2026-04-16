@@ -3,6 +3,7 @@
 [![Status](https://img.shields.io/badge/Status-Published-brightgreen.svg)](https://doi.org/10.1214/25-BJPS645)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![R-CMD-check](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/Everton-da-Costa/BarmaRidgeBJPS2025/total.svg?logo=github&color=blue)](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/releases)
 
 This repository contains the R package and associated data for the scientific article:
 
