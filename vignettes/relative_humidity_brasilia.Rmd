@@ -56,8 +56,7 @@ We implemented a ridge-penalized estimation method (PMLE) that acts as a "safety
  * Reproducible Research: Creating a clear, self-contained vignette that documents the problem, solution, and results, allowing for easy verification.
 
 **Key Reference:** 
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
-Numerical stability enhancements in beta autoregressive moving average model estimation.
+Based on the research published in: Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). *Brazilian Journal of Probability and Statistics*, Vol. 39, No. 4, pp. 410-437. DOI: 10.1214/25-BJPS645.
 
 ## Introduction
 

@@ -1,6 +1,13 @@
-^BarmaRidgeBJPS2025\.Rproj$
-^\.Rproj\.user$
-^LICENSE\.md$
+^BarmaRidgeBJPS2025.Rproj$
+^.Rproj.user$
+^LICENSE.md$
 ^doc$
 ^Meta$
 ^data-raw$
+^.github$
+^CODE_OF_CONDUCT.md$
+^betaARMA.Rproj$
+^reports$
+^.Rbuildignore$
+^.*\.Rproj$
+^\.Rproj\.user$

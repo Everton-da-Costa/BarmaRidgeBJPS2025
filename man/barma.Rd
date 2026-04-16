@@ -106,12 +106,15 @@ The original version of this function was developed by Fabio M. Bayer
  (everton.ecosta@ufpe.br). With suggestions and contributions from
  Rodney Fonceca (rodneyfonseca@ufba.br) and
  Francisco Cribari Neto (francisco.cribari@ufpe.br).
+
+-------------------------------------------------------------------------- #
 }
 \references{
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). Numerical
-stability enhancements in beta autoregressive moving average model
-estimation. *Brazilian Journal of Probability and Statistics*,
-Vol(Issue), pp-pp.
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model
+ estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+ 410-437. <doi:10.1214/25-BJPS645>
+-------------------------------------------------------------------------- #
 
 Rocha, A.V., & Cribari-Neto, F. (2009). Beta autoregressive moving
 average models. *TEST*, 18(3), 529-545.

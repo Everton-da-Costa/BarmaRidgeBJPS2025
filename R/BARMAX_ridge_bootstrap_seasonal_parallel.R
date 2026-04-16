@@ -29,10 +29,12 @@
 #' estimates (`mat_boot_estimates`) and their means
 #' (`mean_bootstrap_estimates`), along with convergence statistics.
 #'
-#' @references
-#' Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). Numerical stability
-#' enhancements in beta autoregressive moving average model estimation.
-#' *Manuscript submitted for publication*.
+#' -------------------------------------------------------------------------- #
+#' @references Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+#' Numerical stability enhancements in beta autoregressive moving average model
+#'  estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+#'  410-437. <doi:10.1214/25-BJPS645>
+#' -------------------------------------------------------------------------- #
 #'
 #' Dudek, A. E., Leskow, J., Paparoditis, E., & Politis, D. N. (2014).
 #' A GENERALIZED BLOCK BOOTSTRAP FOR SEASONAL TIME SERIES.

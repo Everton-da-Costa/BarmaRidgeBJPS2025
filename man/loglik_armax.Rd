@@ -45,4 +45,14 @@ The log-likelihood of the BARMAX model estimators.
 This function computes the log-likelihood of the Beta
   Autoregressive Moving Average model with exogenous regressors (BARMAX).
 }
+\details{
+-------------------------------------------------------------------------- #
+}
+\references{
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model
+ estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+ 410-437. <doi:10.1214/25-BJPS645>
+-------------------------------------------------------------------------- #
+}
 \keyword{internal}

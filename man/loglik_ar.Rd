@@ -28,4 +28,14 @@ A numeric value representing the total conditional log-likelihood
 This function computes the log-likelihood of the Beta
   Autoregressive (BAR) model.
 }
+\details{
+-------------------------------------------------------------------------- #
+}
+\references{
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model
+ estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+ 410-437. <doi:10.1214/25-BJPS645>
+-------------------------------------------------------------------------- #
+}
 \keyword{internal}

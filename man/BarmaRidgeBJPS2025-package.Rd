@@ -6,18 +6,24 @@
 \alias{BarmaRidgeBJPS2025-package}
 \title{BarmaRidgeBJPS2025: Enhancements for Numerical Stability in Beta ARMA Models}
 \description{
-Implements a ridge penalization scheme to improve the numerical stability of conditional maximum likelihood estimation for Beta Autoregressive Moving Average (BARMA) models. The penalty term enhances the curvature of the log-likelihood function, reducing the risk of convergence failures and implausible estimates. The package also provides a bootstrap-based parameter estimation strategy as a complementary solution. These tools are designed to replicate the analysis and methods presented in Cribari-Neto, Costa, and Fonseca (2025).
+Implements a ridge penalization scheme to improve the numerical stability of conditional maximum likelihood estimation for Beta Autoregressive Moving Average (BARMA) models. The penalty term enhances the curvature of the log-likelihood function, reducing the risk of convergence failures and implausible estimates. The package also provides a bootstrap-based parameter estimation strategy as a complementary solution. These tools are designed to replicate the analysis and methods presented in Cribari-Neto, Costa, and Fonseca (2025) \doi{10.1214/25-BJPS645}.
+}
+\references{
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model
+ estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+ 410-437. <doi:10.1214/25-BJPS645>
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/everton-da-costa/BarmaRidgeBJPS2025}
-  \item Report bugs at \url{https://github.com/everton-da-costa/BarmaRidgeBJPS2025/issues}
+  \item \url{https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025}
+  \item Report bugs at \url{https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Everton da Costa \email{everton.ecosta@ufpe.br} (\href{https://orcid.org/0000-0001-7580-2639}{ORCID})
+\strong{Maintainer}: Everton Costa \email{everto.cost@gmail.com} (\href{https://orcid.org/0000-0001-7580-2639}{ORCID})
 
 Other contributors:
 \itemize{

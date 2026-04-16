@@ -47,6 +47,8 @@ estimates (`mat_boot_estimates`) and their means
 A list containing the bootstrap results, including a matrix of coefficient
 estimates (`mat_boot_estimates`) and their means
 (`mean_bootstrap_estimates`), along with convergence statistics.
+
+-------------------------------------------------------------------------- #
 }
 \description{
 Implements a robust, parallelized seasonal block bootstrap for BARMA(X) models.
@@ -56,9 +58,11 @@ Cribari-Neto, Costa, and Fonseca (2025). It includes a retry mechanism to
 handle model non-convergence.
 }
 \references{
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). Numerical stability
-enhancements in beta autoregressive moving average model estimation.
-*Manuscript submitted for publication*.
+Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+Numerical stability enhancements in beta autoregressive moving average model
+ estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+ 410-437. <doi:10.1214/25-BJPS645>
+-------------------------------------------------------------------------- #
 
 Dudek, A. E., Leskow, J., Paparoditis, E., & Politis, D. N. (2014).
 A GENERALIZED BLOCK BOOTSTRAP FOR SEASONAL TIME SERIES.

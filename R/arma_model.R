@@ -9,13 +9,18 @@
 #   - score_vector_arma_ridge: L2-penalized score vector
 #   - inf_matrix_arma: Unpenalized Fisher Information Matrix
 #   - inf_matrix_arma_ridge: L2-penalized Fisher Information Matrix
-# --------------------------------------------------------------------------- #
-#'
-#' @param y Data, a time series of numbers in (0,1).
-#' @param ar A vector specifying the autoregressive (AR) component.
-
+# 
+#' -------------------------------------------------------------------------- #
+#' @references Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
+#' Numerical stability enhancements in beta autoregressive moving average model
+#'  estimation. \emph{Brazilian Journal of Probability and Statistics}, 39(4), 
+#'  410-437. <doi:10.1214/25-BJPS645>
+#' -------------------------------------------------------------------------- #
 #' @title Log-Likelihood for a BARMA Model
 #' @description This function computes the log-likelihood of the BARMA model.
+#' 
+#' @param y Data, a time series of numbers in (0,1).
+#' @param ar A vector specifying the autoregressive (AR) component.
 #' @param ma A vector specifying the moving average (MA) component.
 #' @param alpha The intercept term.
 #' @param varphi A vector of autoregressive (AR) parameters.

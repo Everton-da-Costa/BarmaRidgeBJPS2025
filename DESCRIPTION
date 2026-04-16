@@ -22,12 +22,12 @@ Description: Implements a ridge penalization scheme to improve the numerical
     Autoregressive Moving Average (BARMA) models. The penalty term enhances 
     the curvature of the log-likelihood function, reducing the risk of 
     convergence failures and implausible estimates. The package also provides 
-    a bootstrap-based parameter estimation strategy as a complementary solution. 
+    a bootstrap-based parameter estimation strategy as a complementary solution.
     These tools are designed to replicate the analysis and methods presented in 
-    Cribari-Neto, Costa, and Fonseca (2025).
+    Cribari-Neto, Costa, and Fonseca (2025) <doi:10.1214/25-BJPS645>.
 License: MIT + file LICENSE
-URL: https://github.com/everton-da-costa/BarmaRidgeBJPS2025
-BugReports: https://github.com/everton-da-costa/BarmaRidgeBJPS2025/issues
+URL: https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025
+BugReports: https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2

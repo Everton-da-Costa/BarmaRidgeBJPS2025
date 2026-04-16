@@ -33,8 +33,7 @@ knitr::opts_chunk$set(
 This vignette reproduces a key simulation study from Cribari-Neto, Costa, & Fonseca (2025). We demonstrate a common numerical instability issue that arises when fitting beta autoregressive moving average ($\beta\text{ARMA}$) models. Specifically, we will fit a $\beta\text{ARMA(1,4)}$ model to data generated from a $\beta\text{AR(1)}$ process. This example corresponds to the results shown in Table 1 (unpenalized estimation) and Table 3 (penalized estimation) of the paper. We first show how standard optimization methods can fail to converge or produce implausible estimates and then demonstrate how the proposed ridge penalization provides a more stable and accurate solution.
 
 **Key Reference:** 
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
-Numerical stability enhancements in beta autoregressive moving average model estimation.
+Based on the research published in: Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). *Brazilian Journal of Probability and Statistics*, Vol. 39, No. 4, pp. 410-437. DOI: 10.1214/25-BJPS645.
 
 ## Simulated Data and Model Setup
 

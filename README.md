@@ -1,13 +1,12 @@
 # BarmaRidgeBJPS2025
 
-[![Status](https://img.shields.io/badge/Status-Submitted-lightgrey.svg)](https://projecteuclid.org/journals/brazilian-journal-of-probability-and-statistics)
+[![Status](https://img.shields.io/badge/Status-Published-brightgreen.svg)](https://doi.org/10.1214/25-BJPS645)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![R-CMD-check](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Everton-da-Costa/BarmaRidgeBJPS2025/actions/workflows/R-CMD-check.yaml)
 
 This repository contains the R package and associated data for the scientific article:
 
-**"Numerical stability enhancements in beta autoregressive moving average model estimation"** by Cribari-Neto, F., Costa, E., and Fonseca, R. V.
-Submitted to the *Brazilian Journal of Probability and Statistics*. 
+**"Numerical stability enhancements in beta autoregressive moving average model estimation"** by Cribari-Neto, F., Costa, E., and Fonseca, R. V. Published in the ***Brazilian Journal of Probability and Statistics*** (2025), Vol. 39, No. 4, pp. 410-437.
 
 ---
 
@@ -29,24 +28,22 @@ Submitted to the *Brazilian Journal of Probability and Statistics*.
 
 ## 🎯 Project Motivation
 
-The Beta Autoregressive Moving Average (BARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard parameter estimation using conditional maximum likelihood can suffer from **numerical instability**.  This often occurs when the log-likelihood function has flat regions, leading to convergence failures or unreliable, implausible estimates. 
+The Beta Autoregressive Moving Average (BARMA) model is a powerful tool for analyzing time series data bounded between 0 and 1. However, standard estimation via conditional maximum likelihood can suffer from **numerical instability**, such as convergence failures or implausible estimates. 
 
-This project introduces and implements a ridge penalization scheme that adds a penalty term to the log-likelihood function, enhancing its curvature and promoting stable convergence.
-
-The effectiveness of these methods is demonstrated through a detailed case study on modeling the relative humidity in Brasília, Brazil. 
+This project implements a **ridge penalization** scheme to enhance the log-likelihood curvature, ensuring stable convergence. For cases where penalization alone is insufficient, the package also provides a **bootstrap-based estimation strategy**.
 
 ---
 
 ## 🏆 Publication & Journal Quality
 
-This research has been submitted to the **Brazilian Journal of Probability and Statistics**, the official publication of the **Brazilian Statistical Association (ABE)** and supported by the **Institute of Mathematical Statistics (IMS)**.
+This research is published in the **Brazilian Journal of Probability and Statistics (BJPS)**, the official journal of the Brazilian Statistical Association (ABE). Received May 2025; accepted December 2025.
 
-The journal is a respected venue for methodological advances in statistics. Its key bibliometric indicators (2023 data) include:
-
+* **DOI:** [10.1214/25-BJPS645](https://doi.org/10.1214/25-BJPS645)
 * **SJR (SCImago Journal Rank):** 0.251
 * **H-Index:** 23
 * **CiteScore:** 1.2
 * **Impact Factor:** 0.55
+
 
 <a href="https://www.scimagojr.com/journalsearch.php?q=19900192736&amp;tip=sid&amp;exact=no" title="SCImago Journal &amp; Country Rank"><img border="0" src="https://www.scimagojr.com/journal_img.php?id=19900192736" alt="SCImago Journal &amp; Country Rank" /></a>
 
@@ -58,7 +55,7 @@ The journal is a respected venue for methodological advances in statistics. Its 
 
 This project showcases a range of advanced data science and statistical engineering skills:
 
-* **Statistical Algorithm Design:** Implementing a **Ridge Penalization** scheme from scratch to solve non-convergence in Maximum Likelihood Estimation.
+* **Statistical Algorithm Design:** Implementing a **Ridge Penalization** scheme from scratch to solve non-convergence in Conditional Maximum Likelihood Estimation.
 * **R Package Development:** Creating a structured, documented, and installable R package.
 * **High-Performance Computing:** Utilizing the `doMC` package for parallel processing in simulation studies (Linux environments).
 * **Reproducible Research:** Authoring detailed R Markdown vignettes that serve as reproducible case studies.
@@ -68,11 +65,9 @@ This project showcases a range of advanced data science and statistical engineer
 
 ## ✨ Key Features
 
-This package provides an toolkit for stable BARMA model estimation.
-
-* **Ridge-Penalized BARMA Model:** The core `barma()` function is enhanced with a `penalty` argument to apply the ridge penalization scheme.
-* **Core Estimation Engine:** The mathematical foundation is implemented in a series of functions for computing the log-likelihood (`loglik_*`), score vector (`score_vector_*`), and information matrix (`inf_matrix_*`), with variants for both standard and ridge-penalized estimation.
-* **Vignette as a Case Study:** A detailed vignette (`relative_humidity_brasilia.Rmd`) serves as a practical guide and portfolio piece, demonstrating how to diagnose and solve numerical instability in a real-world application.
+* **Ridge-Penalized BARMA:** Core estimation with analytical gradients for enhanced stability.
+* **Bootstrap Estimation:** Non-parametric block bootstrap for reliable estimates in extreme scenarios.
+* **Reproducible Research:** Comprehensive vignettes replicating the relative humidity (Brasília) and reservoir volume (Itaparica) case studies.
 
 ---
 
@@ -166,11 +161,15 @@ vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
 If you use this code or data in your research, please cite the original article:
 
 ```bibtex
-@article{CribariNeto+Costa+Fonseca_2025,
-  title     = {Numerical stability enhancements in beta autoregressive moving average model estimation},
-  author    = {Cribari-Neto, F. and Costa, E. and Fonseca, R. V.},
-  journal   = {Brazilian Journal of Probability and Statistics},
-  year      = {2025}
+@article{Cribari_Costa_Fonseca_2025,
+  author  = {Cribari-Neto, F. and Costa, E. and Fonseca, R. V.},
+  title   = {Numerical stability enhancements in beta autoregressive moving average model estimation},
+  journal = {Brazilian Journal of Probability and Statistics},
+  year    = {2025},
+  volume  = {39},
+  number  = {4},
+  pages   = {410--437},
+  doi     = {10.1214/25-BJPS645}
 }
 ```
 

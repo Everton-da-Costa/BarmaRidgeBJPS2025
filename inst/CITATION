@@ -1,0 +1,18 @@
+citHeader("To cite BarmaRidgeBJPS2025 in publications, please use:")
+
+bibentry(
+  bibtype = "Article",
+  title = "Numerical stability enhancements in beta autoregressive moving average model estimation",
+  author = c(
+    person("Francisco", "Cribari-Neto"),
+    person("Everton", "Costa"),
+    person("Rodney V.", "Fonseca")
+  ),
+  journal = "Brazilian Journal of Probability and Statistics",
+  year = "2025",
+  volume = "39",
+  number = "4",
+  pages = "410--437",
+  doi = "10.1214/25-BJPS645",
+  textVersion = "Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). Numerical stability enhancements in beta autoregressive moving average model estimation. Brazilian Journal of Probability and Statistics, 39(4), 410-437. https://doi.org/10.1214/25-BJPS645"
+)
