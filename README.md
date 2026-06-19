@@ -93,7 +93,7 @@ The repository is structured as a standard R package for clarity and reproducibi
 
 ## 🛠️ Local Installation Guide
 
-### 1. Install Dependencies
+### Install Dependencies
 Before installing this package, please ensure the required dependencies are installed from CRAN:
 
 ```R
@@ -103,12 +103,37 @@ install.packages(c("doMC", "doRNG", "foreach", "lbfgs", "Rdpack", "dplyr", "ggpl
 **⚠️ Compatibility Note for Windows Users:**
 This package uses doMC for parallel computing. **doMC is not available on Windows.** Windows users may install the package but might encounter issues running the specific parallelized vignettes unless they use a Linux subsystem (WSL) or modify the code to use doParallel.
 
-### 2. Install the Package
-Save the provided `.tar.gz` file to your computer. Run the following command in R, replacing `path/to/file/` with the actual location of the file:
+### Installation
 
-```R
-install.packages("path/to/file/BarmaRidgeBJPS2025_1.0.0.tar.gz", 
-                 repos = NULL, 
+This research compendium can be installed as an R package directly from
+GitHub. This is the recommended method as it handles all dependencies
+automatically.
+
+**Option A — Install from GitHub (Recommended)**
+
+First, ensure you have the `remotes` package. If not, install it from CRAN:
+
+```r
+if (!require("remotes")) {
+  install.packages("remotes")
+}
+```
+
+Then, install the package from GitHub:
+
+```r
+remotes::install_github("Everton-da-Costa/BarmaRidgeBJPS2025",
+                        dependencies = TRUE,
+                        build_vignettes = TRUE)
+```
+
+**Option B — Install from local `.tar.gz`**
+
+If you have downloaded the `.tar.gz` file, run the following command in R, replacing `path/to/file/` with the actual location:
+
+```r
+install.packages("path/to/file/BarmaRidgeBJPS2025_1.0.0.tar.gz",
+                 repos = NULL,
                  type = "source")
 ```
 
@@ -150,6 +175,19 @@ You can open the vignette directly from your R console to view the full analysis
 # Open the main application case study
 vignette("relative_humidity_brasilia", package = "BarmaRidgeBJPS2025")
 ```
+
+---
+
+## 📖 References
+
+The methodology implemented in this package draws on the following references:
+
+* **Rocha, A. V., & Cribari-Neto, F. (2009).** "Beta autoregressive moving average models." *TEST*, 18(3), 529–545. [doi:10.1007/s11749-008-0112-z](https://doi.org/10.1007/s11749-008-0112-z)
+* **Rocha, A. V., & Cribari-Neto, F. (2017).** "Erratum to: Beta autoregressive moving average models." *TEST*, 26(2), 451–459. [doi:10.1007/s11749-017-0528-4](https://doi.org/10.1007/s11749-017-0528-4)
+* **Costa, E., Cribari-Neto, F., & Scher, V. T. (2024).** "Test inferences and link function selection in dynamic beta modeling of seasonal hydro-environmental time series with temporary abnormal regimes." *Journal of Hydrology*, 638, 131489. [doi:10.1016/j.jhydrol.2024.131489](https://doi.org/10.1016/j.jhydrol.2024.131489)
+* **Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025).** "Numerical stability enhancements in beta autoregressive moving average model estimation." *Brazilian Journal of Probability and Statistics*, 39(4), 410–437. [doi:10.1214/25-BJPS645](https://doi.org/10.1214/25-BJPS645)
+
+This package implements the methodology proposed in Cribari-Neto, Costa, & Fonseca (2025).
 
 ---
 
