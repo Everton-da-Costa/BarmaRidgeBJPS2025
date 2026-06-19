@@ -1,21 +1,4 @@
----
-title: "A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"
-author: "Everton da Costa"
-date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_vignette:
-    toc: true
-    code_folding: hide
-    toc_depth: 3
-    number_sections: true
-    fig_caption: true
-vignette: >
-  %\VignetteIndexEntry{"A Simulated Data Example: Addressing Numerical Instability in $\\beta\\text{ARMA}$ Models"}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -25,35 +8,14 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
-```
 
-# Example with simulated time series
-
-## Introduction
-
-This vignette reproduces a key simulation study from Cribari-Neto, Costa, & Fonseca (2025). We demonstrate a common numerical instability issue that arises when fitting beta autoregressive moving average ($\beta\text{ARMA}$) models. Specifically, we will fit a $\beta\text{ARMA(1,4)}$ model to data generated from a $\beta\text{AR(1)}$ process. This example corresponds to the results shown in Table 1 (unpenalized estimation) and Table 3 (penalized estimation) of the paper. We first show how standard optimization methods can fail to converge or produce implausible estimates and then demonstrate how the proposed ridge penalization provides a more stable and accurate solution.
-
-**Key Reference:** 
-Based on the research published in: Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). *Brazilian Journal of Probability and Statistics*, Vol. 39, No. 4, pp. 410-437. DOI: 10.1214/25-BJPS645.
-
-## Simulated Data and Model Setup
-
-We begin by loading the R packages required for this simulation, including tools for time series analysis (`forecast`), data handling (`dplyr`), and plotting (`ggplot2`).
-
-```{r, library}
+## ----library------------------------------------------------------------------
 library(BarmaRidgeBJPS2025)
 library(forecast) # time series
 library(ggplot2) # plotting
 library(dplyr) # data manipulation
-```
 
-### Functions
-
-To demonstrate the package's internal mechanics for this vignette, we
-access several non-exported functions using the `:::` operator. This
-makes them easier to call and inspect in the following examples.
-
-```{r, setup_internal_functions}
+## ----setup_internal_functions-------------------------------------------------
 # -----------------------------------------------------------------------------
 # Core functions for the standard ARMA model
 # -----------------------------------------------------------------------------
@@ -72,14 +34,8 @@ score_vector_arma_ridge <- BarmaRidgeBJPS2025:::score_vector_arma_ridge
 # Utility function for creating link structures
 # -----------------------------------------------------------------------------
 make_link_structure <- BarmaRidgeBJPS2025:::make_link_structure
-```
 
-### Specification
-
-This chunk configures all parameters for our simulation. We define the
-model structure (link function, $\beta\text{ARMA}$ order) and the true parameter values used to generate the synthetic time series data.
-
-```{r, simulation_setup}
+## ----simulation_setup---------------------------------------------------------
 # --------------------------------------------------------------------------- #
 # 1. Link Function Setup
 # --------------------------------------------------------------------------- #
@@ -117,13 +73,8 @@ varphi_true <- 0.4 # AR(1) coefficient
 theta_true <- NA # No MA terms in the true model
 alpha_true <- 0 # Intercept for the linear predictor
 phi_true <- 20 # Precision parameter for the Beta distribution
-```
 
-### Time Series
-
-The initial `burn` observations are discarded as a burn-in period. This helps mitigate the influence of initial conditions and ensures the simulated series has reached its stationary distribution.
-
-```{r, simulate_data}
+## ----simulate_data------------------------------------------------------------
 # Set the seed to ensure the data simulation is reproducible.
 set.seed(seed)
 
@@ -141,11 +92,8 @@ y_burn <- simu_barma(
 final_indices <- (burn + 1):nburn
 y <- ts(y_burn[final_indices], frequency = 12)
 
-```
 
-Time series plot
-
-```{r, plot_simulated_data}
+## ----plot_simulated_data------------------------------------------------------
 # First, convert the time series object into a tibble for plotting.
 df <- tibble(time = 1:length(y), value = y)
 
@@ -158,13 +106,8 @@ ggplot(df, aes(x = time, y = value)) +
     title = " "
   ) +
   scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.20))
-```
 
-### Start values
-
-Before running the optimization, we need to generate initial parameter estimates. The `start_values()` helper function provides starting points based on the time series data, which helps the optimization algorithm converge more efficiently.
-
-```{r, start_values}
+## ----start_values-------------------------------------------------------------
 # Obtain initial parameter estimates using the package's helper function.
 start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
 
@@ -172,20 +115,14 @@ start_par <- start_values(y = y, ar = ar_vec, ma = ma_vec, link = link)
 start_par_print <- round(start_par, 4)
 start_par_print <- t(as.data.frame(start_par_print))
 rownames(start_par_print) <- NULL
-```
 
-```{r, print_start_values, echo=FALSE}
+## ----print_start_values, echo=FALSE-------------------------------------------
 knitr::kable(
   start_par_print,
   caption = "Initial parameter estimates for the BARMA(1,4) model."
 )
-```
 
-
-### Estimation 
-
-Before proceeding to the optimization, we define several key parameters for the estimation procedure. This includes the model order (`p` and `q`), the sample size (`n`), and the penalty term ($\lambda$) for the ridge regression.
-```{r, estimation_setup}
+## ----estimation_setup---------------------------------------------------------
 # --------------------------------------------------------------------------- #
 # Define key parameters for the estimation procedure
 # --------------------------------------------------------------------------- #
@@ -207,17 +144,8 @@ n <- length(y)
 # The formula provides a small shrinkage value that depends on sample size.
 a_max <- max(ar_vec, ma_vec)
 penalty <- 1 / (n - a_max)^(0.90)
-```
 
-## Optimization
-
-### Conditional Maximum Likelihood Estimation
-
-Demonstrating Numerical Instability
-
-First, we'll attempt to fit the model using the standard Conditional Maximum Likelihood Estimation (CMLE). The following chunk uses the `stats::optim` function with the `BFGS` algorithm. As demonstrated in the paper, this standard approach can fail to converge for certain time series, which is what we expect to see here.
-
-```{r, opt_optim}
+## ----opt_optim----------------------------------------------------------------
 # --------------------------------------------------------------------------- #
 # Perform Conditional Maximum Likelihood Estimation (CMLE) via `stats::optim()`
 # --------------------------------------------------------------------------- #
@@ -263,20 +191,16 @@ rownames(optim_AG_BFGS_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_BFGS$convergence
 conv_status <- ifelse(optim_AG_BFGS$convergence== 0, "Yes", "No")
-```
 
-```{r, print_opt_optim, echo=FALSE}
+## ----print_opt_optim, echo=FALSE----------------------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_BFGS_par),
   digits = 4,
   caption = "Convergence status and parameter estimates for $\\beta$ARMA(1,4)
   model using `stats::optim` package."
 )
-```
 
-To show this is not an issue with a single optimization package, we'll try again using the `lbfgs` package, which provides an alternative implementation of the `L-BFGS` algorithm. The result is the same: the optimization fails to converge.
-
-```{r, opt_lbfgs}
+## ----opt_lbfgs----------------------------------------------------------------
 # --------------------------------------------------------------------------- #
 # Perform CMLE using the lbfgs package
 # --------------------------------------------------------------------------- #
@@ -321,20 +245,16 @@ rownames(lbfgs_AG_par) <- NULL
 # Convergence status from the optimization
 conv_status <- lbfgs_AG$convergence
 conv_status <- ifelse(lbfgs_AG$convergence == 0, "Yes", "No")
-```
 
-```{r, print_opt_lbfgs, echo=FALSE}
+## ----print_opt_lbfgs, echo=FALSE----------------------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, lbfgs_AG_par),
   digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
   `lbfgs::lbfgs` package."
 )
-```
 
-As a final attempt with standard CMLE, we use the `L-BFGS-B` method. Even with this variation, the optimization still does not converge, confirming the numerical instability of the unpenalized log-likelihood function for this dataset.
-
-```{r, opt_optim_lbfgsb}
+## ----opt_optim_lbfgsb---------------------------------------------------------
 # -----------------------------------------------------------------------
 # Optimization: stats::optim(), Analytical Gradient, L-BFGS-B
 # -----------------------------------------------------------------------
@@ -379,20 +299,16 @@ rownames(optim_AG_LBFGSB_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_LBFGSB$convergence
 conv_status <- ifelse(optim_AG_LBFGSB$convergence== 0, "Yes", "No")
-```
 
-```{r, print_optim_lbfgsb, echo=FALSE}
+## ----print_optim_lbfgsb, echo=FALSE-------------------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_LBFGSB_par),
   digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
   `stats::optim` with `L-BFGS-B` algorithm."
 )
-```
 
-Before applying the Jeffreys prior, we first define a helper function, `loglike_JeffreysPenalty`, that calculates the penalized log-likelihood.
-
-```{r, jeffreys_function}
+## ----jeffreys_function--------------------------------------------------------
 # ---------------------------------------------------------------------------
 # Jeffreys's prior, function to be optimized
 # ---------------------------------------------------------------------------
@@ -431,11 +347,8 @@ loglike_JeffreysPenalty <- function(y, ar, ma,
 
   return(logJefPen_final)
 }
-```
 
-Using this helper function, we now perform the optimization with the Jeffreys prior, using the `BFGS` algorithm.
-
-```{r, opt_optim_JEFFREYS}
+## ----opt_optim_JEFFREYS-------------------------------------------------------
 # =============================================================================
 # Jeffreys's prior Penalty, BFGS
 # =============================================================================
@@ -464,23 +377,15 @@ rownames(optim_NG_BFGS_JEFFREYS_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_NG_BFGS_JEFFREYS$convergence
 conv_status <- ifelse(optim_NG_BFGS_JEFFREYS$convergence== 0, "Yes", "No")
-```
 
-```{r, print_opt_optim_JEFFREYS, echo=FALSE}
+## ----print_opt_optim_JEFFREYS, echo=FALSE-------------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, optim_NG_BFGS_JEFFREYS_par),  digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
     Jeffreys's Prior with `stats::optim`."
 )
-```
 
-### Ridge Penalization
-
-Enhancing Stability with Ridge Penalization
-
-Now, we apply the solution proposed in the paper: **ridge penalization**. This method introduces a small penalty to the log-likelihood function to enhance its curvature and stabilize the optimization. We use the recommended penalty value, $\lambda = 1 / (n-a)^{0.90}$. The following chunks show that with this penalty, all three optimization algorithms now converge successfully.
-
-```{r, opt_optim_RIDGE}
+## ----opt_optim_RIDGE----------------------------------------------------------
 optim_AG_BFGS_RIDGE <- stats::optim(
   par = start_par,
   fn = function(estimate) {
@@ -520,19 +425,15 @@ rownames(optim_AG_BFGS_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_BFGS_RIDGE$convergence
 conv_status <- ifelse(optim_AG_BFGS_RIDGE$convergence== 0, "Yes", "No")
-```
 
-```{r, print_opt_optim_RIDGE, echo=FALSE}
+## ----print_opt_optim_RIDGE, echo=FALSE----------------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_BFGS_RIDGE_par),
   digits = 4,
   caption = "Convergence status and parameter estimates for $\\beta$ARMA(1,4) model using **Ridge Penalyzation** with `stats::optim`."
 )
-```
 
-The following chunk implements the same ridge-penalized estimation, this time using the `L-BFGS-B` algorithm.
-
-```{r, opt_optim_RIDGE_lbfgsb}
+## ----opt_optim_RIDGE_lbfgsb---------------------------------------------------
 optim_AG_LBFGSB_RIDGE <- stats::optim(
   par = start_par,
   fn = function(estimate) {
@@ -572,20 +473,16 @@ rownames(optim_AG_LBFGSB_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- optim_AG_LBFGSB_RIDGE$convergence
 conv_status <- ifelse(optim_AG_LBFGSB_RIDGE$convergence == 0, "Yes", "No")
-```
 
-```{r, print_opt_optim_RIDGE_lbfgsb, echo=FALSE}
+## ----print_opt_optim_RIDGE_lbfgsb, echo=FALSE---------------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, optim_AG_LBFGSB_RIDGE_par),
   digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
     Ridge Penalyzation with `stats::optim` with `L-BFGS-B`."
 )
-```
 
-Finally, we apply the ridge penalization using the `lbfgs` package's implementation of the `L-BFGS` algorithm.
-
-```{r, opt_barma_lbfgs_RIDGE_lbfgsb}
+## ----opt_barma_lbfgs_RIDGE_lbfgsb---------------------------------------------
 lbfgs_AG_RIDGE <- lbfgs::lbfgs(
   vars = start_par,
   call_eval = function(estimate) {
@@ -629,22 +526,16 @@ rownames(lbfgs_AG_RIDGE_par) <- NULL
 # Convergence status from the optimization
 conv_status <- lbfgs_AG_RIDGE$convergence
 conv_status <- ifelse(lbfgs_AG_RIDGE$convergence == 0, "Yes", "No")
-```
 
-```{r, print_opt_barma_lbfgs_RIDGE_lbfgsb, echo=FALSE}
+## ----print_opt_barma_lbfgs_RIDGE_lbfgsb, echo=FALSE---------------------------
 knitr::kable(
   cbind("Convergence" = conv_status, lbfgs_AG_RIDGE_par),
   digits = 4,
   caption = "Parameter estimates for $\\beta$ARMA(1,4) model using
     Ridge Penalyzation with `lbfgs::lbfgs`."
 )
-```
 
-## Comparison of Results
-
-The tables below summarize all results, corresponding to Table 1 (unpenalized) and Table 3 (penalized) in the paper. The key takeaway is clear: all unpenalized CMLE methods failed to converge, producing implausible parameter estimates. In contrast, all methods using ridge penalization converged successfully, yielding estimates very close to the true parameter values $(\varphi_1 = 0.4)$ and all $\theta_j = 0$ for $j = 1, \dots, 4$.
-
-```{r, table_results_complete}
+## ----table_results_complete---------------------------------------------------
 # =============================================================================
 # Create data frame for each individual result.
 # =============================================================================
@@ -703,19 +594,15 @@ estimates_final[,5:11] <- round(estimates_final[,5:11], 4)
 
 # Create a clear "Yes/No" column for convergence and add it to the data frame
 estimates_final$`Conv.` <- ifelse(estimates_final$Conv == 0, "Yes", "No")
-```
 
-```{r, print_table_results_complete, echo=FALSE, eval=FALSE}
-# Display the final table
-knitr::kable(
-  estimates_final,
-  caption = ""
-)
-```
+## ----print_table_results_complete, echo=FALSE, eval=FALSE---------------------
+# # Display the final table
+# knitr::kable(
+#   estimates_final,
+#   caption = ""
+# )
 
-In the following tables, the algorithms are denoted as follows: B (BFGS), LB (L-BFGS), L (L-BFGS-B), B$_\text{J}$ (BFGS with Jeffreys prior), and B$_\text{r}$ (BFGS with ridge penalization).
-
-```{r, table_results_part1_part2}
+## ----table_results_part1_part2------------------------------------------------
 # ----------------------------------------------------------------------------
 estimates_final_part1 <- estimates_final[1:3, c(5:11)]
 estimates_final_part2 <- estimates_final[4:7, c(5:11)]
@@ -750,41 +637,33 @@ estimates_final_part2 <- cbind("Algorithm" = rownames_part2,
 rownames(estimates_final_part1) <- NULL
 rownames(estimates_final_part2) <- NULL
 
-```
 
-```{r, echo=FALSE}
+## ----echo=FALSE---------------------------------------------------------------
 knitr::kable(
   estimates_final_part1,
   caption =
     "Parameter estimates for the $\\beta$ARMA(1,4) model obtained using different
   algorithms; data were generated from a $\\beta$AR(1) process."
 )
-```
 
-```{r, echo=FALSE}
+## ----echo=FALSE---------------------------------------------------------------
 knitr::kable(
   estimates_final_part2,
   caption =
     "Parameter estimates for the $\\beta$ARMA(1,4) model obtained using penalized log-likelihood and different optimization algorithms; data generated from a $\\beta$AR(1) model."
 )
-```
 
-```{r, echo=FALSE, eval=FALSE}
-estimates_final_print <- cbind(
-  "Algorithm" = c(rownames_part1, rownames_part2), estimates_final
-  )
-knitr::kable(
-  estimates_final_print,
-  caption =
-    ""
-)
-```
+## ----echo=FALSE, eval=FALSE---------------------------------------------------
+# estimates_final_print <- cbind(
+#   "Algorithm" = c(rownames_part1, rownames_part2), estimates_final
+#   )
+# knitr::kable(
+#   estimates_final_print,
+#   caption =
+#     ""
+# )
 
-## Reproducibility
-
-To ensure the long-term reproducibility of this analysis, the following section details the specific computational environment in which this document was generated. This includes the R version, operating system, and all loaded package versions. This information is crucial for anyone attempting to replicate these findings in the future.
-
-```{r, session_info, echo=FALSE}
+## ----session_info, echo=FALSE-------------------------------------------------
 cat("=================================================================", "\n")
 cat("Session Information", "\n")
 cat("=================================================================", "\n")
@@ -794,4 +673,4 @@ cat("This report was generated at:",
 cat("\n")
 
 print(sessionInfo())
-```
+

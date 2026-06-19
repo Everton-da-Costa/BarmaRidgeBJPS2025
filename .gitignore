@@ -3,3 +3,6 @@
 .Rdata
 .httr-oauth
 *.tar.gz
+.positai
+/doc/
+/Meta/

@@ -1,21 +1,4 @@
----
-title: "Application: Modeling Relative Humidity in Brasília"
-author: "Everton da Costa"
-date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_vignette:
-    toc: true
-    code_folding: hide
-    toc_depth: 3
-    number_sections: true
-    fig_caption: true
-vignette: >
-  %\VignetteIndexEntry{Application: Modeling Relative Humidity in Brasília}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r, setup, include=FALSE}
+## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -25,25 +8,8 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
-```
 
-# Application: Relative Humidity in Brasília
-
-## Introduction
-
-In this vignette, we reproduce an empirical application from Cribari-Neto, Costa, & Fonseca (2025) using the `BarmaRidgeBJPS2025` package. We show how numerical instability can arise when modeling an empirical time series and how the package's functions provide stable and reliable solutions.
-
-The analysis focuses on fitting a $\beta\text{ARMA(1,4)}$ model to a subsample of monthly relative humidity data from Brasília, Brazil, where standard estimation methods are known to produce implausible results. This example corresponds to **Table 11 (data from April 2006 to September 2018)** in the paper.
-
-**Key Reference:** 
-Cribari-Neto, F., Costa, E., & Fonseca, R. V. (2025). 
-Numerical stability enhancements in beta autoregressive moving average model estimation.
-
-## Data and Exploratory Analysis
-
-We'll start by loading the necessary R packages. These include tools for time series analysis (`forecast`), data handling (`dplyr`, `zoo`), plotting (`ggplot2`), and the bootstrap procedures (`doMC`, `doRNG`).
-
-```{r, library}
+## ----library------------------------------------------------------------------
 library(BarmaRidgeBJPS2025)
 library(forecast)   # time series
 library(ggplot2)    # plotting
@@ -54,11 +20,8 @@ library(gridExtra)  # grid.arrange for plots
 # Bootstrap libraries
 library(doMC)
 library(doRNG)
-```
 
-Next, we'll set up some standard configurations for our `ggplot2` plots. This helps ensure a consistent and clean appearance for all visualizations in the vignette.
-
-```{r, config_data_visualization}
+## ----config_data_visualization------------------------------------------------
 # Series size and end time
 sample_size <- length(brasilia_ts)
 end_time_series <- time(brasilia_ts)[sample_size] + 1
@@ -87,15 +50,8 @@ ggplot_scale_x <- scale_x_continuous(
   breaks = seq(1999, end_time_series, 2),
   limits = c(1999, end_time_series)
 )
-```
 
-The dataset consists of 306 monthly observations of the average relative humidity in Brasília, Brazil, from January 1999 to June 2024. The data is sourced from NASA's POWER project. Relative humidity is a proportion, naturally bounded between 0 and 1, making it a perfect candidate for beta regression-based models.
-
-The time series exhibits clear seasonal fluctuations, confirmed by the sinusoidal decay in the autocorrelation function. Descriptive statistics reveal a left-skewed distribution with significant variation (standard deviation of 0.16). To account for seasonality, we use harmonic regressors $(s_t = sin(2\pi t/12)$ and $c_t  = cos(2\pi t/12))$ in the modeling process.
-
-Let's begin the exploratory analysis by plotting the time series, its autocorrelation function (ACF), and partial autocorrelation function (PACF) to inspect its structure and dependencies.
-
-```{r, ggplot_brasilia}
+## ----ggplot_brasilia----------------------------------------------------------
 # -------------------------------------------------------------------------- #
 # Time series plot
 # -------------------------------------------------------------------------- #
@@ -121,9 +77,8 @@ ggpacf_plot <- ggPacf(brasilia_ts) +
   ggtitle(" ") +
   xlab("Lag") +
   ylab("PACF")
-```
 
-```{r, print_ggplot_brasilia, message=FALSE, echo=FALSE, fig.height=5, fig.cap="Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."}
+## ----print_ggplot_brasilia, message=FALSE, echo=FALSE, fig.height=5, fig.cap="Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."----
 # -------------------------------------------------------------------------- #
 # Grid all plots
 # -------------------------------------------------------------------------- #
@@ -133,11 +88,8 @@ grid.arrange(
   ggpacf_plot,
   layout_matrix = rbind(c(1, 1), c(2, 3))
 )
-```
 
-To supplement the visual analysis, we calculate key descriptive statistics for the series.
-
-```{r, descriptive}
+## ----descriptive--------------------------------------------------------------
 # -------------------------------------------------------------------------- #
 # Descriptive statistics: Useful volume of the brasilia
 # -------------------------------------------------------------------------- #
@@ -153,22 +105,15 @@ descriptive_df <- data.frame(
 
 # Round to two decimals
 descriptive_df <- round(descriptive_df, 2)
-```
 
-```{r, print_descriptive, echo=FALSE}
+## ----print_descriptive, echo=FALSE--------------------------------------------
 knitr::kable(
   descriptive_df,
   caption = 
     "Descriptive statistics of the brasilia relative humidity in Brasília."
 )
-```
 
-## A Case of Instability: The Sub-sample Analysis
-
-To highlight the estimation challenges, we focus on a specific 150-observation subsample (April 2006–September 2018) that was identified in the original research as being particularly problematic for standard estimation methods.
-
-The following code chunk defines and extracts this specific 150-observation window.
-```{r, sample}
+## ----sample-------------------------------------------------------------------
 # The length of the training sample
 sample_size <- 150
 
@@ -193,11 +138,8 @@ start_train_lag <- end_train_lag - deltat(brasilia_ts) * (sample_size - 1)
 y_sample_ts <- window(brasilia_ts,
                       start = start_train_lag,
                       end = end_train_lag)
-```
 
-The plot below shows the full time series, with the subsample highlighted between the dashed red lines. This visualization helps contextualize the portion of the data that causes estimation issues.
-
-```{r, ggplot_brasilia_subsample}
+## ----ggplot_brasilia_subsample------------------------------------------------
 len_y_sample <- length(y_sample_ts)
 
 start_subsample_time <- time(y_sample_ts)[1]
@@ -245,9 +187,8 @@ ggpacf_plot <- ggPacf(brasilia_ts) +
   ggtitle(" ") +
   xlab("Lag") +
   ylab("PACF")
-```
 
-```{r, print_ggplot_brasilia_subsample, message=FALSE, echo=FALSE, fig.height=5, fig.cap=" Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."}
+## ----print_ggplot_brasilia_subsample, message=FALSE, echo=FALSE, fig.height=5, fig.cap=" Relative humidity in Brasília (top), with its corresponding autocorrelation function (bottom left) and partial autocorrelation function (bottom right)."----
 # -------------------------------------------------------------------------- #
 # Grid all plots
 # -------------------------------------------------------------------------- #
@@ -257,17 +198,8 @@ grid.arrange(
   ggpacf_plot,
   layout_matrix = rbind(c(1, 1), c(2, 3))
 )
-```
 
-
-### Feature Engineering
-
-To capture the strong seasonal patterns identified in the exploratory analysis, 
-we include harmonic regressors.
-
-* Harmonic Regressors: A pair of sine (`hs`) and cosine (`hc`) waves with a 12-month frequency. These are highly effective for modeling smooth, repeating annual cycles like those seen in humidity data.
-
-```{r, regressor}
+## ----regressor----------------------------------------------------------------
 # Get Time Series Frequency
 freq <- frequency(y_sample_ts)
 
@@ -294,27 +226,13 @@ regressors_list <- list(
     hc_hat = hc_hat
 )
 
-```
 
-## Model Fitting and Results
-
-Now we fit the $\beta\text{ARMA(1,4)}$ model to the subsample using both the standard conditional maximum likelihood estimator (CMLE) and the penalized estimator (PCMLE). The goal is to compare the parameter estimates and demonstrate the stabilizing effect of the ridge penalty. We also include results from the seasonal block bootstrap as a complementary strategy.
-
-### Standard Method: Conditional Maximum Likelihood (CMLE)
-
-First, we fit the model using the standard CMLE by setting `penalty = 0`. As the results show, this approach produces implausible parameter estimates for this subsample, highlighting the numerical instability issue.
-
-We specify a $\beta$ARMA(1,4) model, as used in the original paper for this analysis.
-
-```{r, estimation_setup}
+## ----estimation_setup---------------------------------------------------------
 # Model Specification
 ar_vec <- 1
 ma_vec <- 1:4
-```
 
-The model is fitted using the main `barma()` function. By setting the penalty argument to `0`, we are performing a standard, unpenalized CMLE.
-
-```{r, estimates_mle}
+## ----estimates_mle------------------------------------------------------------
 # The 'penalty' parameter controls the ridge penalization. Setting it to 0 
 # effectively disables the penalty, resulting in a standard unpenalized model.
 penalty <- FALSE
@@ -334,9 +252,8 @@ fit_default <- BarmaRidgeBJPS2025::barma(
     hc = regressors_list$hc_hat
   )
 )
-```
 
-```{r, estimates_mle_df}
+## ----estimates_mle_df---------------------------------------------------------
 # Data frame with CMLE estimates
 estimates <- cbind(
   CMLE = as.numeric(fit_default$coef)
@@ -358,28 +275,19 @@ barma_names <- c("$\\alpha$",
 
 rownames(estimates_df) <- barma_names
 estimates_df <- round(estimates_df, 4)
-```
 
-```{r, print_estimates_mle_df, echo=FALSE}
+## ----print_estimates_mle_df, echo=FALSE---------------------------------------
 knitr::kable(
   t(estimates_df),
   caption = "**CMLE**; Parameter estimates for the $\\beta\\text{ARMA(1,4)}$ model; relative humidity in Brasília, data from April 2006 to September 2018."
 )
-```
 
-### Proposed Solution 1: Penalized CMLE (PCMLE)
-
-To address the instability, we now apply the **ridge penalization** scheme proposed in the paper. This method adds a simple penalty term to the log-likelihood function to **enhance its curvature**, making the optimization process more stable and reducing the chance of implausible estimates. The penalty value, $\lambda = 1/(n - a)^{0.9}$, is intentionally small and was chosen as a good trade-off between bias and variance in the paper's simulation studies.
-
-```{r, penalty}
+## ----penalty------------------------------------------------------------------
 # Next, define the small penalty value (lambda) for the ridge regression.
 a_max <- max(ar_vec, ma_vec)
 penalty <- 1 / (len_y_sample - a_max)^(0.9)
-```
 
-With the penalty term defined, we now refit the model using the `barma()` function, this time passing the calculated `penalty` value.
-
-```{r, estimates_pmle}
+## ----estimates_pmle-----------------------------------------------------------
 # Fit the penalized BARMA model (PCMLE)
 fit_ridge <- BarmaRidgeBJPS2025::barma(
   y = y_sample_ts,
@@ -395,11 +303,8 @@ fit_ridge <- BarmaRidgeBJPS2025::barma(
     hc = regressors_list$hc_hat
   )
 )
-```
 
-To directly compare the results, we combine the coefficient estimates from both the standard (CMLE) and penalized (PCMLE) models into a single table.
-
-```{r, estimates_df}
+## ----estimates_df-------------------------------------------------------------
 # Data frame with CMLE and PCMLE estimates
 estimates <- cbind(
   CMLE = as.numeric(fit_default$coef),
@@ -411,20 +316,14 @@ estimates_df <- data.frame(estimates)
 # Row names of the LaTeX table
 rownames(estimates_df) <- barma_names
 estimates_df <- round(estimates_df, 4)
-```
 
-```{r, print_estimates_df, echo=FALSE}
+## ----print_estimates_df, echo=FALSE-------------------------------------------
 knitr::kable(
   t(estimates_df),
   caption = "**CMLE and PCMLE**; Parameter estimates for the $\\beta\\text{ARMA(1,4)}$ model; relative humidity in Brasília, data from April 2006 to September 2018."
 )
-```
 
-### Proposed Solution 2: Seasonal Block Bootstrap
-
-The paper also proposes a bootstrap-based strategy as a complementary solution, which is particularly useful when penalization alone might be insufficient to resolve numerical issues. We'll start by configuring the parameters for the procedure.
-
-```{r, bootstrap_conf}
+## ----bootstrap_conf-----------------------------------------------------------
 # -------------------------------------------------------------------------- #
 # Bootstrap Configuration
 # -------------------------------------------------------------------------- #
@@ -434,11 +333,8 @@ seed <- 14
 n_cores <- 2
 # Specify the total number of bootstrap replications to be performed.
 n_boot_rep <- 200
-```
 
-To properly account for the monthly seasonality, we employ the **seasonal block bootstrap**. This non-parametric method preserves the series' dependence structure by resampling blocks of data. We'll start with a block length of 12, corresponding to the annual cycle.
-
-```{r, bootstrap12}
+## ----bootstrap12--------------------------------------------------------------
 # -------------------------------------------------------------------------- #
 # Run Bootstrap Procedures
 # -------------------------------------------------------------------------- #
@@ -460,11 +356,8 @@ ridge_boot_seasonal_block12 <-
   block_length = block_length,
   n_boot_rep = n_boot_rep
 )
-```
 
-To check the sensitivity of our results to the block size, we repeat the procedure with a block length of 24
-
-```{r, bootstrap24}
+## ----bootstrap24--------------------------------------------------------------
 # Repeat the bootstrap procedure with a different block length of 24.
 block_length <- 24
 
@@ -481,16 +374,8 @@ ridge_boot_seasonal_block24 <-
   block_length = block_length,
   n_boot_rep = n_boot_rep
 )
-```
 
-### Comparison of Results
-
-The table below summarizes all estimates, corresponding to 
- **Table 11 (data from April 2006 to September 2018)** in the paper. The standard method (CMLE) shows clear signs of instability, as predicted. For instance, the autoregressive parameter $(\varphi_1)$ is implausibly negative $(-0.5736)$, while the first moving average parameter $(\theta_1)$ is inflated to $(1.2184)$. The paper notes this pattern - a negative AR estimate paired with an MA estimate greater than one - as a common sign of numerical issues. In stark contrast, the PCMLE and bootstrap estimates are stable and much more plausible, demonstrating the effectiveness of the proposed methods.
- 
-Now, we combine the original CMLE and PCMLE estimates with the mean estimates from both bootstrap procedures to create our final comparison table.
-
-```{r, estimates_final_df}
+## ----estimates_final_df-------------------------------------------------------
 # -------------------------------------------------------------------------- #
 # Format and Print Bootstrap Estimates
 # -------------------------------------------------------------------------- #
@@ -515,26 +400,16 @@ print_estimates_final_df <- cbind(
   Parameter = rownames(estimates_final_df), estimates_final_df
   )
 rownames(print_estimates_final_df) <- NULL
-```
 
-```{r, print_estimates_final_df, echo=FALSE}
+## ----print_estimates_final_df, echo=FALSE-------------------------------------
 # Generate a formatted table for the report using the kable() function.
 knitr::kable(
   print_estimates_final_df,
   caption = "Parameter estimates for the $\\beta\\text{ARMA(1,4)}$ model;
   relative humidity in Brasília, data from April 2006 to September 2018."
 )
-```
 
-## Conclusion
-
-This vignette demonstrated the application of the `BarmaRidgeBJPS2025` package in handling numerical instability. We showed that for the Brasília relative humidity dataset, standard CMLE produced implausible estimates on a specific subsample. In contrast, the Penalized CMLE (PCMLE) approach, along with the seasonal block bootstrap, provided stable and reliable results, underscoring the value of these methods for time series analysis.
-
-## Reproducibility
-
-To ensure the long-term reproducibility of this analysis, the following section details the specific computational environment in which this document was generated. This includes the R version, operating system, and all loaded package versions. This information is crucial for anyone attempting to replicate these findings in the future.
-
-```{r, session_info, echo=FALSE}
+## ----session_info, echo=FALSE-------------------------------------------------
 cat("=================================================================", "\n")
 cat("Session Information", "\n")
 cat("=================================================================", "\n")
@@ -544,4 +419,4 @@ cat("This report was generated at:",
 cat("\n")
 
 print(sessionInfo())
-```
+

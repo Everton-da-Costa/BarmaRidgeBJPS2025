@@ -11,3 +11,5 @@
 ^.Rbuildignore$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.positai$
+^\.claude$

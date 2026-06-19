@@ -97,7 +97,7 @@ BARMAX_ridge_bootstrap_seasonal_parallel <- function(n_cores = 1,
       ids_y_bootstrap <- block_bootstrap_seasonal$ids_y_bootstrap
 
       # Fit BARMA ridge to the bootstrap sample with corrected list access
-      fit_ridge_boot <- barma(
+      fit_ridge_boot <- BarmaRidgeBJPS2025::barma(
         y = ts(y[ids_y_bootstrap], frequency = 12),
         ar = ar_vec,
         ma = ma_vec,
